@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using OmniClip.Core.Interfaces;
 using OmniClip.Core.Models;
 using Clipboard = System.Windows.Clipboard;
@@ -9,6 +10,7 @@ namespace OmniClip.App;
 public partial class MainWindow : Window
 {
     private readonly IDatabaseService? _dbService;
+    private string _currentFilter = "all";
 
     public MainWindow()
     {
@@ -24,42 +26,60 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await LoadTagFiltersAsync();
         await LoadEntriesAsync();
     }
 
-    private async Task LoadTagFiltersAsync()
+    // === Window Chrome ===
+
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (_dbService == null) return;
-
-        var tags = new List<TagFilterItem>
-        {
-            new("📋", "全部", await _dbService.GetEntryCountAsync()),
-            new("💻", "代码", (await _dbService.GetEntriesByTypeAsync(ContentType.Code)).Count),
-            new("🔗", "链接", (await _dbService.GetEntriesByTypeAsync(ContentType.Url)).Count),
-            new("📝", "文本", (await _dbService.GetEntriesByTypeAsync(ContentType.Text)).Count),
-            new("🖼️", "图片", (await _dbService.GetEntriesByTypeAsync(ContentType.Image)).Count),
-            new("📁", "文件", (await _dbService.GetEntriesByTypeAsync(ContentType.File)).Count),
-        };
-
-        TagFilterList.ItemsSource = tags;
+        if (e.ClickCount == 2)
+            MaximizeWindow_Click(sender, e);
+        else if (e.LeftButton == MouseButtonState.Pressed)
+            DragMove();
     }
 
-    private async void TagFilterList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void MinimizeWindow_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void MaximizeWindow_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void CloseWindow_Click(object sender, RoutedEventArgs e)
+        => Hide();
+
+    // === Sidebar Navigation ===
+
+    private async void SidebarNav_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_dbService == null) return;
-        if (TagFilterList.SelectedItem is not TagFilterItem tag) return;
+        if (SidebarNav.SelectedItem is not ListBoxItem item) return;
 
-        if (tag.Name == "全部")
+        var tag = item.Tag?.ToString() ?? "all";
+        _currentFilter = tag;
+
+        if (tag == "all")
         {
             await LoadEntriesAsync();
+            return;
         }
-        else if (Enum.TryParse<ContentType>(tag.Name, true, out var type))
+
+        if (Enum.TryParse<ContentType>(tag, true, out var type))
         {
             var entries = await _dbService.GetEntriesByTypeAsync(type);
             EntryListMain.ItemsSource = entries;
         }
     }
+
+    // === Filter Chips ===
+
+    private async void FilterChip_Click(object sender, RoutedEventArgs e)
+    {
+        if (_dbService == null) return;
+        await LoadEntriesAsync();
+    }
+
+    // === Feed List ===
 
     private async Task LoadEntriesAsync(string? keyword = null)
     {
@@ -76,11 +96,39 @@ public partial class MainWindow : Window
 
     private void EntryListMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (EntryListMain.SelectedItem is ClipboardEntry entry)
+        if (EntryListMain.SelectedItem is not ClipboardEntry entry) return;
+
+        // Update preview header
+        PreviewTitle.Text = entry.ContentType switch
         {
-            PreviewText.Text = entry.PlainText;
-            MetaInfo.Text = $"字符数: {entry.CharCount}\n来源: {entry.SourceApp}\n类型: {entry.ContentType}\n标签: {entry.Tags}";
-        }
+            ContentType.Code => "Code Snippet",
+            ContentType.Url => "Web Link",
+            ContentType.Image => "Image",
+            ContentType.File => "File",
+            _ => "Plain Text"
+        };
+
+        PreviewMeta.Text = $"Copied from {entry.SourceApp} · {FormatTimestamp(entry.CreatedAt)} · {FormatSize(entry.CharCount)}";
+        PreviewIcon.Text = entry.ContentType switch
+        {
+            ContentType.Code => "",
+            ContentType.Url => "",
+            ContentType.Image => "",
+            ContentType.File => "",
+            _ => ""
+        };
+
+        PreviewLangLabel.Text = entry.ContentType switch
+        {
+            ContentType.Code => "code",
+            ContentType.Url => "url",
+            _ => "text"
+        };
+
+        PreviewText.Text = entry.PlainText;
+        PreviewText.Style = entry.ContentType == ContentType.Code
+            ? (Style)FindResource("CodeSnippetStyle")
+            : (Style)FindResource("BodyMd");
     }
 
     private async void MainSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -88,33 +136,65 @@ public partial class MainWindow : Window
         await LoadEntriesAsync(MainSearchBox.Text);
     }
 
+    // === Preview Actions ===
+
     private void CopyEntry_Click(object sender, RoutedEventArgs e)
     {
         if (EntryListMain.SelectedItem is ClipboardEntry entry)
-        {
             Clipboard.SetText(entry.PlainText);
+    }
+
+    private void ShareEntry_Click(object sender, RoutedEventArgs e)
+    {
+        if (EntryListMain.SelectedItem is not ClipboardEntry entry) return;
+        Clipboard.SetText(entry.PlainText);
+        // Future: integrate with Windows Share contract
+    }
+
+    private void OpenExternal_Click(object sender, RoutedEventArgs e)
+    {
+        if (EntryListMain.SelectedItem is not ClipboardEntry entry) return;
+        if (entry.ContentType == ContentType.Url && Uri.TryCreate(entry.PlainText.Trim(), UriKind.Absolute, out var uri))
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = uri.ToString(),
+                UseShellExecute = true
+            });
         }
     }
 
-    private async void FavoriteEntry_Click(object sender, RoutedEventArgs e)
+    // === Other buttons ===
+
+    private async void AiInsights_Click(object sender, RoutedEventArgs e)
     {
-        if (_dbService == null) return;
-        if (EntryListMain.SelectedItem is ClipboardEntry entry)
-        {
-            entry.IsFavorite = !entry.IsFavorite;
-            await _dbService.UpdateEntryAsync(entry);
-        }
+        // Placeholder: will trigger AI summary in future phase
+        System.Windows.MessageBox.Show("AI Insights will be available in a future update.", "OmniClip");
+        await Task.CompletedTask;
     }
 
-    private async void DeleteEntry_Click(object sender, RoutedEventArgs e)
+    private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        if (_dbService == null) return;
-        if (EntryListMain.SelectedItem is ClipboardEntry entry)
-        {
-            await _dbService.DeleteEntryAsync(entry.Id);
-            await LoadEntriesAsync();
-        }
+        // Placeholder: will open settings window in future phase
+        System.Windows.MessageBox.Show("Settings will be available in a future update.", "OmniClip");
+    }
+
+    // === Helpers ===
+
+    private static string FormatTimestamp(DateTime dt)
+    {
+        var local = dt.ToLocalTime();
+        if (local.Date == DateTime.Today)
+            return "Today, " + local.ToString("h:mm tt");
+        if (local.Date == DateTime.Today.AddDays(-1))
+            return "Yesterday";
+        return local.ToString("MMM d");
+    }
+
+    private static string FormatSize(int charCount)
+    {
+        if (charCount < 1024) return $"{charCount} B";
+        if (charCount < 1024 * 1024) return $"{charCount / 1024.0:F1} KB";
+        return $"{charCount / (1024.0 * 1024):F1} MB";
     }
 }
-
-public record TagFilterItem(string Icon, string Name, int Count);

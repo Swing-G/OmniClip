@@ -10,108 +10,104 @@
         ShowInTaskbar="False"
         Topmost="True"
         ResizeMode="NoResize"
+        FontFamily="Segoe UI"
         Deactivated="Window_Deactivated">
 
     <Window.Resources>
         <conv:RelativeTimeConverter x:Key="RelTime"/>
-        <Style x:Key="NoScrollListBox" TargetType="ListBox">
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden"/>
+        <conv:ContentTypeToColorConverter x:Key="TypeToColor"/>
+        <conv:ContentTypeToIconConverter x:Key="TypeToIcon"/>
+
+        <Style x:Key="PopupCardItem" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="CardBorder" Padding="12,10"
+                                Margin="0,0,0,4"
+                                Background="#FCF9F8"
+                                BorderBrush="#C0C7D4"
+                                BorderThickness="0.5"
+                                CornerRadius="8"
+                                Cursor="Hand">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CardBorder" Property="Background" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="CardBorder" Property="Background" Value="#D3E3FF"/>
+                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="#005FAA"/>
+                                <Setter TargetName="CardBorder" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
-    <Border Background="White" CornerRadius="0" BorderBrush="#D0D0D0" BorderThickness="1">
+    <Border Background="White" CornerRadius="8" BorderBrush="#C0C7D4" BorderThickness="1">
         <Border.Effect>
-            <DropShadowEffect Color="#40000000" BlurRadius="12" ShadowDepth="3" Direction="270"/>
+            <DropShadowEffect Color="#000000" Opacity="0.1" BlurRadius="16" ShadowDepth="4"/>
         </Border.Effect>
 
         <DockPanel>
-            <!-- Search Bar -->
+            <!-- Search bar -->
             <Border DockPanel.Dock="Top" Padding="12,10" Background="White"
-                    BorderBrush="#EBEBEB" BorderThickness="0,0,0,1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="&#x1F50D;" FontSize="14"
-                               VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBox Grid.Column="1" x:Name="SearchBox"
-                             Background="Transparent" Foreground="#1A1A1A"
-                             BorderThickness="0" FontSize="14"
-                             CaretBrush="#4F6EF7"
-                             TextChanged="SearchBox_TextChanged">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="TextBox">
-                                            <Border Background="{TemplateBinding Background}"
-                                                    BorderThickness="0">
-                                                <ScrollViewer x:Name="PART_ContentHost"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
-                </Grid>
+                    BorderBrush="#E5E2E1" BorderThickness="0,0,0,1">
+                <Border Background="#F6F3F2" CornerRadius="20"
+                        BorderBrush="#C0C7D4" BorderThickness="0.5"
+                        Padding="10,7">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="&#xE721;"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                   Foreground="#717783" VerticalAlignment="Center"
+                                   Margin="4,0,8,0"/>
+                        <TextBox Grid.Column="1" x:Name="SearchBox"
+                                 Background="Transparent" Foreground="#1B1B1B"
+                                 BorderThickness="0" FontSize="13"
+                                 VerticalAlignment="Center"
+                                 CaretBrush="#005FAA"
+                                 TextChanged="SearchBox_TextChanged"/>
+                    </Grid>
+                </Border>
             </Border>
 
-            <!-- Entry List -->
+            <!-- Entry list -->
             <ListBox x:Name="EntryList"
                      DockPanel.Dock="Top"
-                     Background="White"
-                     Foreground="#1A1A1A"
+                     Background="#FCF9F8"
                      BorderThickness="0"
-                     FontSize="13"
-                     Style="{StaticResource NoScrollListBox}"
+                     ItemContainerStyle="{StaticResource PopupCardItem}"
+                     ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      SelectionChanged="EntryList_SelectionChanged"
-                     KeyDown="EntryList_KeyDown">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="12,8"/>
-                        <Setter Property="Margin" Value="0"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="BorderBrush" Value="#F0F0F0"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Border x:Name="Border"
-                                            Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#EBF1FF"/>
-                                            <Setter Property="BorderBrush" Value="#4F6EF7"/>
-                                            <Setter TargetName="Border" Property="BorderThickness" Value="2,0,0,0"/>
-                                        </Trigger>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#F7F8FA"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-
+                     KeyDown="EntryList_KeyDown"
+                     Padding="8,8,8,0"
+                     Margin="0">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                            <!-- Source + timestamp -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding SourceApp}"
+                                           FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#1B1B1B"/>
+                                <TextBlock Text=" · " FontSize="12" Foreground="#C0C7D4"/>
                                 <TextBlock Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
-                                           FontSize="10" Foreground="#999"/>
-                                <TextBlock Text=" · " FontSize="10" Foreground="#CCC"/>
-                                <TextBlock Text="{Binding SourceApp}" FontSize="10" Foreground="#999"/>
+                                           FontSize="11" Foreground="#717783"/>
                             </StackPanel>
+                            <!-- Preview -->
                             <TextBlock Text="{Binding PlainText}"
-                                       FontSize="13" Foreground="#1A1A1A"
+                                       FontSize="13" Foreground="#404752"
                                        TextTrimming="CharacterEllipsis"
                                        MaxHeight="36" TextWrapping="NoWrap"/>
                         </StackPanel>
@@ -119,13 +115,13 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <!-- Bottom Bar -->
-            <Border DockPanel.Dock="Bottom" Padding="10,6" Background="#F7F7F9"
-                    BorderBrush="#EBEBEB" BorderThickness="0,1,0,0">
+            <!-- Bottom hints bar -->
+            <Border DockPanel.Dock="Bottom" Padding="10,6" Background="#F6F3F2"
+                    BorderBrush="#E5E2E1" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="↑↓ 选择  " FontSize="10" Foreground="#AAA"/>
-                    <TextBlock Text="Enter 粘贴  " FontSize="10" Foreground="#AAA"/>
-                    <TextBlock Text="Esc 关闭" FontSize="10" Foreground="#AAA"/>
+                    <TextBlock Text="↑↓ Select  " FontSize="10" Foreground="#C0C7D4"/>
+                    <TextBlock Text="Enter Paste  " FontSize="10" Foreground="#C0C7D4"/>
+                    <TextBlock Text="Esc Dismiss" FontSize="10" Foreground="#C0C7D4"/>
                 </StackPanel>
             </Border>
         </DockPanel>

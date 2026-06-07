@@ -1,19 +1,181 @@
 <Window x:Class="OmniClip.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="OmniClip - 剪贴板管理器"
-        Width="820" Height="600"
-        Background="White"
-        WindowStartupLocation="CenterScreen">
+        xmlns:conv="clr-namespace:OmniClip.App.Converters"
+        Title="OmniClip"
+        Width="1020" Height="640"
+        MinWidth="800" MinHeight="500"
+        Background="#FCF9F8"
+        FontFamily="Segoe UI"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="CanResizeWithGrip">
 
+    <!-- Window-level resources matching DESIGN.md token values -->
     <Window.Resources>
-        <Style x:Key="FlatButton" TargetType="Button">
-            <Setter Property="Background" Value="#F7F7F9"/>
-            <Setter Property="Foreground" Value="#1A1A1A"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="Padding" Value="12,6"/>
+        <conv:RelativeTimeConverter x:Key="RelTime"/>
+
+        <!-- === DESIGN SYSTEM TOKENS === -->
+        <!-- Surface colors -->
+        <SolidColorBrush x:Key="Background" Color="#FCF9F8"/>
+        <SolidColorBrush x:Key="SurfaceOfDim" Color="#DCD9D9"/>
+        <SolidColorBrush x:Key="SurfaceBright" Color="#FCF9F8"/>
+        <SolidColorBrush x:Key="SurfaceLowest" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SurfaceLow" Color="#F6F3F2"/>
+        <SolidColorBrush x:Key="SurfaceDefault" Color="#F0EDED"/>
+        <SolidColorBrush x:Key="SurfaceHigh" Color="#EAE7E7"/>
+        <SolidColorBrush x:Key="SurfaceHighest" Color="#E5E2E1"/>
+
+        <!-- On-surface colors -->
+        <SolidColorBrush x:Key="OnSurfaceColor" Color="#1B1B1B"/>
+        <SolidColorBrush x:Key="OnSurfaceVariantColor" Color="#404752"/>
+
+        <!-- Outline colors -->
+        <SolidColorBrush x:Key="OutlineColor" Color="#717783"/>
+        <SolidColorBrush x:Key="OutlineVariantColor" Color="#C0C7D4"/>
+
+        <!-- Primary colors -->
+        <SolidColorBrush x:Key="PrimaryColor" Color="#005FAA"/>
+        <SolidColorBrush x:Key="PrimaryContainerColor" Color="#0078D4"/>
+        <SolidColorBrush x:Key="OnPrimaryColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="PrimaryFixedColor" Color="#D3E3FF"/>
+        <SolidColorBrush x:Key="PrimaryFixedDimColor" Color="#A3C9FF"/>
+
+        <!-- Semantic type colors -->
+        <SolidColorBrush x:Key="CodeTypeColor" Color="#974700"/>
+        <SolidColorBrush x:Key="LinkTypeColor" Color="#005FAA"/>
+        <SolidColorBrush x:Key="TextTypeColor" Color="#5D5F5F"/>
+        <SolidColorBrush x:Key="ImageTypeColor" Color="#2E7D32"/>
+        <SolidColorBrush x:Key="FileTypeColor" Color="#8E24AA"/>
+
+        <!-- Typography styles matching DESIGN.md -->
+        <Style x:Key="HeadlineSm" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="LineHeight" Value="28"/>
+        </Style>
+        <Style x:Key="BodyMd" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="LineHeight" Value="20"/>
+        </Style>
+        <Style x:Key="BodySm" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="LineHeight" Value="18"/>
+        </Style>
+        <Style x:Key="LabelMd" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="LineHeight" Value="16"/>
+        </Style>
+        <Style x:Key="MetadataStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="LineHeight" Value="14"/>
+            <Setter Property="Foreground" Value="#717783"/>
+        </Style>
+        <Style x:Key="CodeSnippetStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="LineHeight" Value="20"/>
+        </Style>
+
+        <!-- ListBox base style (no border, no scrollbar visibility) -->
+        <Style x:Key="CleanListBox" TargetType="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
+        <!-- Thin scrollbar styling for feed -->
+        <Style x:Key="ThinScrollViewer" TargetType="ScrollViewer">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Grid>
+                            <ScrollContentPresenter/>
+                            <ScrollBar x:Name="PART_VerticalScrollBar" Width="6"
+                                       Maximum="{TemplateBinding ScrollableHeight}"
+                                       Value="{TemplateBinding VerticalOffset}"
+                                       ViewportSize="{TemplateBinding ViewportHeight}"
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                       Style="{StaticResource ThinScrollBar}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ThinScrollBar" TargetType="ScrollBar">
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid>
+                            <Border x:Name="TrackBackground" Background="Transparent" CornerRadius="3"/>
+                            <Border x:Name="Thumb" Background="#C0C7D4" CornerRadius="3"
+                                    Height="{TemplateBinding ViewportSize}"
+                                    VerticalAlignment="Top"
+                                    Margin="0,0,0,0"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nav item style -->
+        <Style x:Key="NavItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Margin" Value="8,1"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="NavBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}"
+                                Margin="{TemplateBinding Margin}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="NavBorder" Property="Background" Value="#0078D4"/>
+                                <Setter TargetName="NavBorder" Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="NavBorder" Property="Background" Value="#EAE7E7"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Filter chip style -->
+        <Style x:Key="FilterChipStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F0EDED"/>
+            <Setter Property="Foreground" Value="#1B1B1B"/>
+            <Setter Property="BorderBrush" Value="#C0C7D4"/>
+            <Setter Property="BorderThickness" Value="0.5"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -21,13 +183,13 @@
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="20"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#EBF1FF"/>
-                                <Setter Property="BorderBrush" Value="#4F6EF7"/>
+                                <Setter Property="Background" Value="#E5E2E1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -35,197 +197,475 @@
             </Setter>
         </Style>
 
-        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource FlatButton}">
-            <Setter Property="Background" Value="#4F6EF7"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#4F6EF7"/>
-        </Style>
-
-        <Style x:Key="SidebarListBox" TargetType="ListBox">
+        <!-- Card item style -->
+        <Style x:Key="CardItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="CardBorder"
+                                Padding="12"
+                                Margin="0,0,0,8"
+                                Background="#FCF9F8"
+                                BorderBrush="#C0C7D4"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Cursor="Hand">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="0" ShadowDepth="0" Opacity="0"/>
+                            </Border.Effect>
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CardBorder" Property="Background" Value="#FFFFFF"/>
+                                <Setter TargetName="CardBorder" Property="Margin" Value="0,0,0,8"/>
+                                <Setter TargetName="CardBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#000000" Opacity="0.06"
+                                                          BlurRadius="12" ShadowDepth="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="CardBorder" Property="Background" Value="#D3E3FF"/>
+                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="#005FAA"/>
+                                <Setter TargetName="CardBorder" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <Style x:Key="MainListBox" TargetType="ListBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden"/>
-        </Style>
+        <!-- Content type to color converter -->
+        <conv:ContentTypeToColorConverter x:Key="TypeToColor"/>
     </Window.Resources>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="170"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="250"/>
-        </Grid.ColumnDefinitions>
-
-        <!-- Left: Tag Filter -->
-        <Border Grid.Column="0" Background="#F7F7F9" BorderBrush="#E5E5E5" BorderThickness="0,0,1,0">
-            <StackPanel>
-                <TextBlock Text="分类筛选" FontSize="11" Foreground="#888"
-                           FontWeight="SemiBold" Margin="16,14,0,10"/>
-
-                <ListBox x:Name="TagFilterList" Style="{StaticResource SidebarListBox}"
-                         SelectionChanged="TagFilterList_SelectionChanged">
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Padding" Value="16,8"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListBoxItem">
-                                        <Border x:Name="Border"
-                                                Background="{TemplateBinding Background}"
-                                                Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="Border" Property="Background" Value="White"/>
-                                                <Setter TargetName="Border" Property="BorderBrush" Value="#4F6EF7"/>
-                                                <Setter TargetName="Border" Property="BorderThickness" Value="3,0,0,0"/>
-                                            </Trigger>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Border" Property="Background" Value="#EFEFF3"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Icon}" Margin="0,0,8,0"/>
-                                <TextBlock Text="{Binding Name}" Foreground="#333"/>
-                                <TextBlock Text="{Binding Count, StringFormat=' {0}'}"
-                                           Foreground="#BBB" FontSize="10" Margin="4,0,0,0"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </StackPanel>
-        </Border>
-
-        <!-- Center: Entry List -->
-        <Grid Grid.Column="1">
+    <!-- Window chrome: custom title bar -->
+    <Border Background="#FCF9F8" CornerRadius="8" BorderBrush="#E5E2E1" BorderThickness="1">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Search bar -->
-            <Border Grid.Row="0" Padding="12,10" Background="White"
-                    BorderBrush="#EBEBEB" BorderThickness="0,0,0,1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Background="#F5F5F7" BorderThickness="0"
-                            Padding="8,5" Margin="0,0,10,0">
-                        <TextBox x:Name="MainSearchBox"
-                                 Background="Transparent" Foreground="#1A1A1A"
-                                 BorderThickness="0" FontSize="13"
-                                 CaretBrush="#4F6EF7"
-                                 TextChanged="MainSearchBox_TextChanged"/>
-                    </Border>
-                    <ComboBox Grid.Column="1" x:Name="SortCombo"
-                              Background="#F5F5F7" Foreground="#333"
-                              BorderThickness="0" FontSize="11"
-                              SelectedIndex="0">
-                        <ComboBoxItem Content="时间降序"/>
-                        <ComboBoxItem Content="相关性"/>
-                    </ComboBox>
-                </Grid>
-            </Border>
+            <!-- Title bar -->
+            <Grid Grid.Row="0" Background="#F6F3F2" MouseDown="TitleBar_MouseDown"
+                  Height="32" Margin="0,0,0,0">
+                <StackPanel Orientation="Horizontal" Margin="12,0,0,0"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="OmniClip" FontSize="12" FontWeight="SemiBold"
+                               Foreground="#1B1B1B" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="─" Click="MinimizeWindow_Click"
+                            Width="40" Height="32" BorderThickness="0" Background="Transparent"
+                            Foreground="#717783" FontSize="14" Cursor="Hand"/>
+                    <Button Content="□" Click="MaximizeWindow_Click"
+                            Width="40" Height="32" BorderThickness="0" Background="Transparent"
+                            Foreground="#717783" FontSize="14" Cursor="Hand"/>
+                    <Button Content="✕" Click="CloseWindow_Click"
+                            Width="40" Height="32" BorderThickness="0" Background="Transparent"
+                            Foreground="#717783" FontSize="14" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
 
-            <!-- Entry list -->
-            <ListBox Grid.Row="1" x:Name="EntryListMain"
-                     Style="{StaticResource MainListBox}"
-                     SelectionChanged="EntryListMain_SelectionChanged">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="16,10"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="BorderBrush" Value="#F2F2F2"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Border x:Name="Border"
-                                            Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter/>
+            <!-- Main content -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="256"/>
+                    <ColumnDefinition Width="384"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ====== COLUMN 1: NAVIGATION SIDEBAR ====== -->
+                <Border Grid.Column="0" Background="#F6F3F2"
+                        BorderBrush="#E5E2E1" BorderThickness="0,0,1,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- App header -->
+                        <StackPanel Grid.Row="0" Margin="16,20,16,16">
+                            <TextBlock Text="OmniClip" Style="{StaticResource HeadlineSm}"
+                                       Foreground="#005FAA"/>
+                            <TextBlock Text="Professional Clipboard" Style="{StaticResource MetadataStyle}"
+                                       Foreground="#404752" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <!-- Nav items -->
+                        <ListBox Grid.Row="1" x:Name="SidebarNav"
+                                 Style="{StaticResource CleanListBox}"
+                                 SelectionChanged="SidebarNav_SelectionChanged">
+                            <ListBoxItem Style="{StaticResource NavItemStyle}" IsSelected="True" Tag="all">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE81C;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <TextBlock Text="All Items" Style="{StaticResource BodyMd}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Style="{StaticResource NavItemStyle}" Tag="code">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE943;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <TextBlock Text="Code Snippets" Style="{StaticResource BodyMd}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Style="{StaticResource NavItemStyle}" Tag="link">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE71B;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <TextBlock Text="Web Links" Style="{StaticResource BodyMd}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Style="{StaticResource NavItemStyle}" Tag="text">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <TextBlock Text="Plain Text" Style="{StaticResource BodyMd}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Style="{StaticResource NavItemStyle}" Tag="image">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE722;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <TextBlock Text="Images" Style="{StaticResource BodyMd}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Style="{StaticResource NavItemStyle}" Tag="file">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xED25;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <TextBlock Text="Files" Style="{StaticResource BodyMd}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                        </ListBox>
+
+                        <!-- AI CTA -->
+                        <Button Grid.Row="2" Margin="16,8" Padding="12,10"
+                                Background="#DCDDDD" Foreground="#5F6161"
+                                BorderThickness="0" FontSize="12" FontWeight="SemiBold"
+                                Cursor="Hand" Click="AiInsights_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Center">
+                                            <TextBlock Text="✦ " FontSize="14" VerticalAlignment="Center"/>
+                                            <TextBlock Text="AI Insights" FontSize="12"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       Foreground="#5F6161"/>
+                                        </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#F0F4FF"/>
-                                            <Setter Property="BorderBrush" Value="#4F6EF7"/>
-                                            <Setter TargetName="Border" Property="BorderThickness" Value="3,0,0,0"/>
-                                        </Trigger>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#FAFAFC"/>
+                                            <Setter Property="Background" Value="#C6C6C7"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
+                            </Button.Template>
+                        </Button>
 
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
-                                <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm}'}"
-                                           FontSize="10" Foreground="#999"/>
-                                <TextBlock Text=" · " FontSize="10" Foreground="#CCC"/>
-                                <TextBlock Text="{Binding SourceApp}" FontSize="10" Foreground="#999"/>
-                            </StackPanel>
-                            <TextBlock Text="{Binding PlainText}" FontSize="13"
-                                       Foreground="#1A1A1A"
-                                       TextTrimming="CharacterEllipsis" MaxHeight="38"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Grid>
-
-        <!-- Right: Preview -->
-        <Border Grid.Column="2" Background="#F7F7F9" BorderBrush="#E5E5E5" BorderThickness="1,0,0,0"
-                Padding="16">
-            <StackPanel>
-                <TextBlock Text="预览" FontSize="11" Foreground="#888"
-                           FontWeight="SemiBold" Margin="0,0,0,10"/>
-
-                <ScrollViewer VerticalScrollBarVisibility="Hidden" MaxHeight="280">
-                    <TextBlock x:Name="PreviewText" Text="选择一条记录查看预览"
-                               Foreground="#333" FontSize="12" TextWrapping="Wrap"
-                               LineHeight="20"/>
-                </ScrollViewer>
-
-                <Border Background="#F0F0F4" Padding="10" Margin="0,12,0,0">
-                    <TextBlock x:Name="MetaInfo" FontSize="10" Foreground="#888"
-                               TextWrapping="Wrap" LineHeight="16"/>
+                        <!-- Settings -->
+                        <Button Grid.Row="3" Margin="16,0,16,12" Padding="12,8"
+                                Background="Transparent" Foreground="#404752"
+                                BorderThickness="0" FontSize="14" Cursor="Hand"
+                                Click="Settings_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets"
+                                                       FontSize="16" VerticalAlignment="Center"
+                                                       Margin="0,0,12,0"/>
+                                            <TextBlock Text="Settings" FontSize="14"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="#404752"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#EAE7E7"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
                 </Border>
 
-                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
-                    <Button Content="复制" Style="{StaticResource AccentButton}" Click="CopyEntry_Click"
-                            Margin="0,0,8,0"/>
-                    <Button Content="收藏" Style="{StaticResource FlatButton}" Click="FavoriteEntry_Click"
-                            Margin="0,0,8,0"/>
-                    <Button Content="删除" Style="{StaticResource FlatButton}" Click="DeleteEntry_Click"/>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-    </Grid>
+                <!-- ====== COLUMN 2: FEED LIST ====== -->
+                <Border Grid.Column="1" Background="#FCF9F8"
+                        BorderBrush="#E5E2E1" BorderThickness="0,0,1,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Sticky header with search + chips -->
+                        <Border Grid.Row="0" Background="#FCF9F8"
+                                Padding="24,16" BorderBrush="#E5E2E1" BorderThickness="0,0,0,1">
+                            <StackPanel>
+                                <!-- Search bar -->
+                                <Border Background="#F6F3F2" CornerRadius="20"
+                                        BorderBrush="#C0C7D4" BorderThickness="0.5"
+                                        Padding="10,8" Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="&#xE721;"
+                                                   FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                   Foreground="#717783" VerticalAlignment="Center"
+                                                   Margin="4,0,8,0"/>
+                                        <TextBox Grid.Column="1" x:Name="MainSearchBox"
+                                                 Background="Transparent" Foreground="#1B1B1B"
+                                                 BorderThickness="0" FontSize="13"
+                                                 VerticalAlignment="Center"
+                                                 CaretBrush="#005FAA"
+                                                 TextChanged="MainSearchBox_TextChanged"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Filter chips -->
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="All Types" Style="{StaticResource FilterChipStyle}"
+                                            x:Name="AllChip" Margin="0,0,8,0" Click="FilterChip_Click"/>
+                                    <Button Content="Unpinned" Style="{StaticResource FilterChipStyle}"
+                                            x:Name="UnpinnedChip" Click="FilterChip_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Feed list -->
+                        <ListBox Grid.Row="1" x:Name="EntryListMain"
+                                 Style="{StaticResource CleanListBox}"
+                                 ItemContainerStyle="{StaticResource CardItemStyle}"
+                                 SelectionChanged="EntryListMain_SelectionChanged"
+                                 Margin="8,0,8,0" Padding="8,12,8,8">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="4"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Type indicator -->
+                                        <Border Grid.Column="0" CornerRadius="0,2,2,0"
+                                                Width="3" HorizontalAlignment="Left"
+                                                VerticalAlignment="Stretch"
+                                                Background="{Binding ContentType,
+                                                    Converter={StaticResource TypeToColor}}"/>
+
+                                        <!-- Icon + Content -->
+                                        <Grid Grid.Column="1" Margin="0,0,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Type icon -->
+                                            <TextBlock Grid.Column="0"
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                                       VerticalAlignment="Top" Margin="8,2,12,0"
+                                                       Foreground="{Binding ContentType,
+                                                           Converter={StaticResource TypeToColor}}">
+                                                <TextBlock.Text>
+                                                    <Binding Path="ContentType"
+                                                             Converter="{StaticResource TypeToIcon}"/>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+
+                                            <!-- Text content -->
+                                            <StackPanel Grid.Column="1">
+                                                <!-- Source app + timestamp -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="{Binding SourceApp}"
+                                                               Style="{StaticResource LabelMd}"
+                                                               Foreground="#1B1B1B"/>
+                                                    <TextBlock Text="  " Style="{StaticResource LabelMd}"/>
+                                                    <TextBlock Text="{Binding CreatedAt,
+                                                        Converter={StaticResource RelTime}}"
+                                                               Style="{StaticResource MetadataStyle}"/>
+                                                </StackPanel>
+
+                                                <!-- Preview text -->
+                                                <TextBlock Style="{StaticResource BodySm}"
+                                                           Foreground="#404752"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxHeight="36"
+                                                           TextWrapping="NoWrap"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <!-- ====== COLUMN 3: PREVIEW ====== -->
+                <Border Grid.Column="2" Background="#F6F3F2">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Preview header -->
+                        <Border Grid.Row="0" Background="#F6F3F2" Padding="32,24"
+                                BorderBrush="#E5E2E1" BorderThickness="0,0,0,1">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <!-- Type circle -->
+                                    <Border Width="40" Height="40" CornerRadius="20"
+                                            Background="#0078D4" Margin="0,0,16,0">
+                                        <TextBlock x:Name="PreviewIcon" Text="&#xE943;"
+                                                   FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel>
+                                        <TextBlock x:Name="PreviewTitle" Text="Select an item"
+                                                   Style="{StaticResource HeadlineSm}"
+                                                   Foreground="#1B1B1B"/>
+                                        <TextBlock x:Name="PreviewMeta" Text=""
+                                                   Style="{StaticResource MetadataStyle}"
+                                                   Foreground="#404752" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Action buttons -->
+                                <StackPanel Orientation="Horizontal" Margin="56,0,0,0">
+                                    <Button Content="Copy to Clipboard" Click="CopyEntry_Click"
+                                            Background="#005FAA" Foreground="White"
+                                            BorderThickness="0" FontSize="12" FontWeight="SemiBold"
+                                            Padding="14,8" Margin="0,0,8,0"
+                                            Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        CornerRadius="8"
+                                                        Padding="{TemplateBinding Padding}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE8C8;"
+                                                                   FontFamily="Segoe MDL2 Assets"
+                                                                   FontSize="14" Margin="0,0,6,0"/>
+                                                        <ContentPresenter VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#0060AB"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <Button Content="Share" Click="ShareEntry_Click"
+                                            Background="Transparent" Foreground="#404752"
+                                            BorderBrush="#C0C7D4" BorderThickness="1"
+                                            FontSize="12" FontWeight="SemiBold"
+                                            Padding="14,8" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="8"
+                                                        Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"
+                                                                      HorizontalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#F6F3F2"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Preview content -->
+                        <Border Grid.Row="1" Margin="32,24,32,32"
+                                Background="White" CornerRadius="12"
+                                BorderBrush="#C0C7D4" BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" Opacity="0.08"
+                                                  BlurRadius="40" ShadowDepth="4"/>
+                            </Border.Effect>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Editor header -->
+                                <Border Grid.Row="0" Background="#F6F3F2"
+                                        BorderBrush="#E5E2E1" BorderThickness="0,0,0,1"
+                                        Padding="16,8" CornerRadius="12,12,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="PreviewLangLabel" Text="text"
+                                                   FontSize="11" Foreground="#717783"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock Text="  " FontSize="11"/>
+                                        <Button x:Name="OpenExternalBtn"
+                                                Background="Transparent" BorderThickness="0"
+                                                Foreground="#717783" Cursor="Hand"
+                                                Padding="4,2" Click="OpenExternal_Click">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <TextBlock Text="&#xE8A7;"
+                                                               FontFamily="Segoe MDL2 Assets"
+                                                               FontSize="14"
+                                                               Foreground="#717783"/>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Content area -->
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden"
+                                              Padding="20">
+                                    <TextBlock x:Name="PreviewText"
+                                               Text="Select a clipboard item to preview its content here."
+                                               Style="{StaticResource BodyMd}"
+                                               Foreground="#404752"
+                                               TextWrapping="Wrap"
+                                               LineHeight="22"/>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
 </Window>

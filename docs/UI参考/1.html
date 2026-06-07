@@ -1,0 +1,353 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>OmniClip - Professional Clipboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#404752",
+                        "on-primary-fixed-variant": "#004883",
+                        "inverse-on-surface": "#f3f0ef",
+                        "background": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#ffffff",
+                        "outline-variant": "#c0c7d4",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-surface": "#1b1b1b",
+                        "surface-container": "#f0eded",
+                        "on-primary-fixed": "#001c39",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "tertiary": "#974700",
+                        "surface-bright": "#fcf9f8",
+                        "outline": "#717783",
+                        "surface": "#fcf9f8",
+                        "inverse-primary": "#a3c9ff",
+                        "surface-dim": "#dcd9d9",
+                        "surface-tint": "#0060ab",
+                        "inverse-surface": "#313030",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#5f6161",
+                        "surface-container-low": "#f6f3f2",
+                        "tertiary-fixed": "#ffdbc8",
+                        "tertiary-container": "#bc5b00",
+                        "primary-fixed-dim": "#a3c9ff",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "secondary": "#5d5f5f",
+                        "primary-fixed": "#d3e3ff",
+                        "on-background": "#1b1b1b",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-tertiary-container": "#ffffff",
+                        "surface-container-high": "#eae7e7",
+                        "secondary-fixed": "#e2e2e2",
+                        "primary": "#005faa",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "secondary-container": "#dcdddd",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#311300",
+                        "primary-container": "#0078d4",
+                        "on-secondary-fixed": "#1a1c1c"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "unit": "4px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "gutter": "8px",
+                        "card-padding": "12px"
+                    },
+                    fontFamily: {
+                        "metadata": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "code-snippet": ["Geist"],
+                        "label-md": ["Inter"]
+                    },
+                    fontSize: {
+                        "metadata": ["11px", { "lineHeight": "14px", "fontWeight": "400" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "code-snippet": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Base styles for material symbols */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Thin, elegant scrollbar for the modern desktop feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--tw-colors-outline-variant);
+            border-radius: 10px;
+        }
+        
+        /* Action toolbar hover logic */
+        .clip-card .action-toolbar {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .clip-card:hover .action-toolbar {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased h-screen overflow-hidden flex">
+<!-- Column 1: SideNavBar -->
+<nav class="bg-surface h-screen w-64 flex-shrink-0 bg-surface-container-low shadow-sm flex flex-col p-md space-y-2 border-r border-surface-variant/50 relative z-20">
+<!-- Header -->
+<div class="px-2 py-4 mb-4">
+<h1 class="font-headline-sm text-headline-sm font-semibold text-primary">OmniClip</h1>
+<p class="font-metadata text-metadata text-on-surface-variant mt-1">Professional Clipboard</p>
+</div>
+<!-- Navigation Tabs -->
+<div class="flex-1 space-y-1">
+<!-- Active Tab -->
+<a class="flex items-center gap-3 px-4 py-2 bg-primary-container text-on-primary-container rounded-lg font-semibold transition-transform duration-100 hover:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-body-md text-body-md">All Items</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">code</span>
+<span class="font-body-md text-body-md">Code Snippets</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">link</span>
+<span class="font-body-md text-body-md">Web Links</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">notes</span>
+<span class="font-body-md text-body-md">Plain Text</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">image</span>
+<span class="font-body-md text-body-md">Images</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">attach_file</span>
+<span class="font-body-md text-body-md">Files</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="pt-4 pb-2">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-secondary-container/50 hover:bg-secondary-container text-on-secondary-container rounded-lg transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;wght&quot; 400;">auto_awesome</span>
+<span class="font-label-md text-label-md">AI Insights</span>
+</button>
+</div>
+<!-- Footer Tab -->
+<div class="mt-auto border-t border-surface-variant/50 pt-2">
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Column 2: List View (The Feed) -->
+<main class="w-96 flex-shrink-0 flex flex-col bg-surface-bright border-r border-surface-variant/40 relative z-10">
+<!-- Search Header -->
+<header class="px-lg py-md sticky top-0 z-10 bg-surface-bright/80 backdrop-blur-md border-b border-surface-variant/30">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-container-low hover:bg-surface-container transition-colors border-none rounded-full py-2 pl-10 pr-4 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]" placeholder="Search clipboard..." type="text">
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 mt-4 overflow-x-auto pb-1 no-scrollbar">
+<button class="px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md border border-outline-variant/30 hover:bg-surface-variant transition-colors whitespace-nowrap">All Types</button>
+<button class="px-3 py-1 rounded-full bg-surface text-on-surface-variant font-label-md text-label-md border border-outline-variant/30 hover:bg-surface-variant transition-colors whitespace-nowrap">Unpinned</button>
+</div>
+</header>
+<!-- Feed List -->
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<!-- Time Group: Today -->
+<section>
+<h2 class="font-label-md text-label-md text-primary mb-3 pl-2 tracking-wider uppercase">Today</h2>
+<div class="space-y-2">
+<!-- Active Card -->
+<div class="clip-card relative flex gap-3 p-card-padding bg-primary-fixed/10 border-2 border-primary rounded-lg cursor-pointer transition-all">
+<div class="flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">code</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md text-on-surface">VS Code</span>
+<span class="font-metadata text-metadata text-on-surface-variant">10:42 AM</span>
+</div>
+<p class="font-code-snippet text-code-snippet text-on-surface-variant truncate">function initializeApp(config) {</p>
+</div>
+<!-- Action Toolbar -->
+<div class="action-toolbar absolute top-2 right-2 flex bg-surface-container-lowest rounded-md shadow-sm border border-outline-variant/20 p-1">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">push_pin</span></button>
+</div>
+</div>
+<!-- Resting Card 1 -->
+<div class="clip-card relative flex gap-3 p-card-padding bg-surface border border-outline-variant/20 rounded-lg cursor-pointer hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:-translate-y-[1px] hover:bg-surface-container-lowest transition-all">
+<div class="flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-tertiary">link</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md text-on-surface">Chrome</span>
+<span class="font-metadata text-metadata text-on-surface-variant">9:15 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">https://designsystem.fluent.com/components</p>
+</div>
+<!-- Action Toolbar -->
+<div class="action-toolbar absolute top-2 right-2 flex bg-surface-container-lowest rounded-md shadow-sm border border-outline-variant/20 p-1">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">push_pin</span></button>
+</div>
+</div>
+<!-- Resting Card 2 -->
+<div class="clip-card relative flex gap-3 p-card-padding bg-surface border border-outline-variant/20 rounded-lg cursor-pointer hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:-translate-y-[1px] hover:bg-surface-container-lowest transition-all">
+<div class="flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-secondary">notes</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md text-on-surface">Notepad</span>
+<span class="font-metadata text-metadata text-on-surface-variant">8:30 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">Meeting notes: Discuss the new architectural changes for the backend API routing. Need to finalize by EOD.</p>
+</div>
+<!-- Action Toolbar -->
+<div class="action-toolbar absolute top-2 right-2 flex bg-surface-container-lowest rounded-md shadow-sm border border-outline-variant/20 p-1">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">push_pin</span></button>
+</div>
+</div>
+</div>
+</section>
+<!-- Time Group: Yesterday -->
+<section>
+<h2 class="font-label-md text-label-md text-on-surface-variant mb-3 pl-2 tracking-wider uppercase">Yesterday</h2>
+<div class="space-y-2">
+<!-- Resting Card 3 -->
+<div class="clip-card relative flex gap-3 p-card-padding bg-surface border border-outline-variant/20 rounded-lg cursor-pointer hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:-translate-y-[1px] hover:bg-surface-container-lowest transition-all">
+<div class="flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-secondary">image</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md text-on-surface">Snipping Tool</span>
+<span class="font-metadata text-metadata text-on-surface-variant">Yesterday</span>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<div class="h-12 w-16 bg-surface-container-high rounded border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+<!-- Decorative placeholder for image -->
+<div class="w-full h-full bg-gradient-to-br from-primary-fixed to-secondary-fixed opacity-50"></div>
+</div>
+<span class="font-metadata text-metadata text-on-surface-variant">Screenshot_2023.png</span>
+</div>
+</div>
+<!-- Action Toolbar -->
+<div class="action-toolbar absolute top-2 right-2 flex bg-surface-container-lowest rounded-md shadow-sm border border-outline-variant/20 p-1">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary-container/20"><span class="material-symbols-outlined text-[16px]">push_pin</span></button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Column 3: Preview Canvas -->
+<section class="flex-1 flex flex-col relative bg-surface-container-low"><!-- Action Header -->
+<div class="px-8 py-6 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="h-10 w-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">code</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Code Snippet</h2>
+<p class="font-metadata text-metadata text-on-surface-variant flex items-center gap-2">
+                        Copied from VS Code <span class="w-1 h-1 rounded-full bg-outline-variant"></span> Today, 10:42 AM <span class="w-1 h-1 rounded-full bg-outline-variant"></span> 1.2 KB
+                    </p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 border border-outline-variant/50 hover:bg-surface-container-low text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span> Share
+                </button>
+<button class="px-4 py-2 bg-primary hover:bg-surface-tint text-on-primary rounded-lg font-label-md text-label-md flex items-center gap-2 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-[18px]">content_copy</span> Copy to Clipboard
+                </button>
+</div>
+</div>
+<!-- Main Preview Canvas (Floating Card Style) -->
+<div class="flex-1 overflow-y-auto px-8 pb-8">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/50 shadow-[0_12px_40px_rgba(0,0,0,0.08)] h-full flex flex-col overflow-hidden transition-all">
+<!-- Mac-like/Editor Header for Code -->
+<div class="bg-surface-container-low border-b border-outline-variant/20 px-4 py-2 flex items-center justify-between bg-surface-container/40">
+<div class="flex items-center gap-2">
+<span class="font-metadata text-metadata text-on-surface-variant font-medium">javascript</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">open_in_new</span>
+</button>
+</div>
+<!-- Syntax Highlighted Content Area -->
+<div class="flex-1 p-6 bg-surface-bright/50 overflow-auto">
+<pre class="font-code-snippet text-code-snippet text-on-surface leading-relaxed"><code><span class="text-tertiary">function</span> <span class="text-primary">initializeApp</span>(config) {
+  <span class="text-outline italic">// Check environment constraints</span>
+  <span class="text-tertiary">if</span> (!config.env || config.env === <span class="text-secondary">'development'</span>) {
+    <span class="text-primary">console</span>.<span class="text-primary">warn</span>(<span class="text-secondary">'Running in development mode with mock data.'</span>);
+    <span class="text-tertiary">return</span> <span class="text-primary">mockInitialization</span>();
+  }
+
+  <span class="text-tertiary">try</span> {
+    <span class="text-tertiary">const</span> instance = <span class="text-tertiary">new</span> <span class="text-primary">CoreService</span>(config);
+    instance.<span class="text-primary">bindEvents</span>();
+    instance.<span class="text-primary">start</span>();
+    
+    <span class="text-tertiary">return</span> {
+      <span class="text-primary">status</span>: <span class="text-secondary">'success'</span>,
+      <span class="text-primary">timestamp</span>: <span class="text-primary">Date</span>.<span class="text-primary">now</span>(),
+      <span class="text-primary">ref</span>: instance
+    };
+  } <span class="text-tertiary">catch</span> (error) {
+    <span class="text-primary">console</span>.<span class="text-primary">error</span>(<span class="text-secondary">'Failed to initialize application:'</span>, error);
+    <span class="text-tertiary">throw</span> <span class="text-tertiary">new</span> <span class="text-primary">InitializationError</span>(error.message);
+  }
+}</code></pre>
+</div>
+</div>
+</div></section>
+
+
+</body></html>
