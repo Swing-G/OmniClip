@@ -1,3 +1,8 @@
 # Superpowers brainstorming artifacts
 .superpowers/
 
+# .NET
+bin/
+obj/
+*.user
+*.suo
