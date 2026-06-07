@@ -154,7 +154,7 @@ public class ClipboardMonitor : IClipboardMonitor
 
             entry.ContentType = ContentType.File;
             entry.FilePath = files[0]!;
-            entry.FileName = Path.GetFileName(files[0]);
+            entry.FileName = Path.GetFileName(files[0]) ?? string.Empty;
             entry.ContentHash = ComputeHash(string.Join("|", files.Cast<string>()));
             entry.PlainText = string.Join(Environment.NewLine, files.Cast<string>());
         }
