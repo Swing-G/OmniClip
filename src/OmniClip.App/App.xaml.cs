@@ -41,7 +41,17 @@ public partial class App : Application
         // Hotkey service
         _hotkeyService = new HotkeyService();
         _hotkeyService.HotkeyPressed += OnHotkeyPressed;
-        _hotkeyService.Register(_config.Hotkey);
+        var registered = _hotkeyService.Register(_config.Hotkey);
+        if (!registered)
+        {
+            System.Windows.MessageBox.Show(
+                $"无法注册热键 {_config.Hotkey}，可能被其他程序占用。\n尝试注册 Ctrl+Alt+V...",
+                "OmniClip - 热键冲突",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Warning);
+            _config.Hotkey = "Ctrl+Alt+V";
+            registered = _hotkeyService.Register(_config.Hotkey);
+        }
 
         // Quick popup
         _quickPopup = new QuickPopup(_databaseService);
