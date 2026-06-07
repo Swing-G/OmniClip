@@ -19,8 +19,18 @@ public class DatabaseServiceTests : IDisposable
     public void Dispose()
     {
         _db.Dispose();
-        if (File.Exists(_dbPath))
-            File.Delete(_dbPath);
+        // Give SQLite time to release file locks
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        try
+        {
+            if (File.Exists(_dbPath))
+                File.Delete(_dbPath);
+        }
+        catch
+        {
+            // Best effort cleanup — temp files get cleaned eventually
+        }
     }
 
     [Fact]
