@@ -19,14 +19,29 @@ public partial class MainWindow : Window
 
     public MainWindow(IDatabaseService dbService)
     {
-        InitializeComponent();
-        _dbService = dbService;
-        Loaded += MainWindow_Loaded;
+        try
+        {
+            InitializeComponent();
+            _dbService = dbService;
+            Loaded += MainWindow_Loaded;
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show($"MainWindow init error:\n{ex}", "OmniClip Error");
+            throw;
+        }
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await LoadEntriesAsync();
+        try
+        {
+            await LoadEntriesAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show($"Loaded error:\n{ex}", "OmniClip Error");
+        }
     }
 
     // === Sidebar Navigation ===
