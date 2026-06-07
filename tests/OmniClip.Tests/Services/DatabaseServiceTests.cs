@@ -149,4 +149,23 @@ public class DatabaseServiceTests : IDisposable
         var count = await _db.GetEntryCountAsync();
         count.Should().Be(1);
     }
+
+    [Fact]
+    public async Task FindByHashAsync_ShouldReturnMatchingEntry()
+    {
+        var entry = new ClipboardEntry { PlainText = "Find me", ContentHash = "hash-abc" };
+        await _db.InsertEntryAsync(entry);
+
+        var result = await _db.FindByHashAsync("hash-abc");
+
+        result.Should().NotBeNull();
+        result!.PlainText.Should().Be("Find me");
+    }
+
+    [Fact]
+    public async Task FindByHashAsync_WhenNotExists_ShouldReturnNull()
+    {
+        var result = await _db.FindByHashAsync("nonexistent-hash");
+        result.Should().BeNull();
+    }
 }

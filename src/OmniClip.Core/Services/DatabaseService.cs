@@ -99,6 +99,20 @@ public class DatabaseService : IDatabaseService
         return null;
     }
 
+    public async Task<ClipboardEntry?> FindByHashAsync(string contentHash)
+    {
+        var sql = "SELECT * FROM clipboard_entries WHERE content_hash = @hash LIMIT 1";
+        using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Parameters.AddWithValue("@hash", contentHash);
+
+        using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+            return ReadEntry(reader);
+
+        return null;
+    }
+
     public async Task<IReadOnlyList<ClipboardEntry>> GetRecentEntriesAsync(int limit = 100)
     {
         var sql = "SELECT * FROM clipboard_entries ORDER BY created_at DESC LIMIT @limit";

@@ -62,6 +62,9 @@ public partial class App : Application
 
         // Start monitoring
         _clipboardMonitor.Start();
+
+        // Update tray with initial info
+        UpdateTrayInfo();
     }
 
     private void SetupTrayIcon()
@@ -126,13 +129,30 @@ public partial class App : Application
         if (entry.CharCount > 0 && entry.CharCount < _config.MinContentLength)
             return;
 
-        await _databaseService.InsertEntryAsync(entry);
-
-        var count = await _databaseService.GetEntryCountAsync();
-        Dispatcher.Invoke(() =>
+        // Dedup: if same content hash exists, just update timestamp (move to top)
+        var existing = await _databaseService.FindByHashAsync(entry.ContentHash);
+        if (existing != null)
         {
-            if (_trayIcon != null)
-                _trayIcon.ToolTipText = $"OmniClip - 已记录 {count} 条";
+            existing.CreatedAt = DateTime.UtcNow;
+            existing.LastAccessed = DateTime.UtcNow;
+            await _databaseService.UpdateEntryAsync(existing);
+        }
+        else
+        {
+            await _databaseService.InsertEntryAsync(entry);
+        }
+
+        UpdateTrayInfo();
+    }
+
+    private void UpdateTrayInfo()
+    {
+        Dispatcher.Invoke(async () =>
+        {
+            if (_trayIcon == null || _databaseService == null) return;
+            var count = await _databaseService.GetEntryCountAsync();
+            var memMb = Environment.WorkingSet / 1024 / 1024;
+            _trayIcon.ToolTipText = $"OmniClip - {count}条 | {memMb}MB";
         });
     }
 

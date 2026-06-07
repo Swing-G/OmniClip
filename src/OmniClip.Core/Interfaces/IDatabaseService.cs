@@ -14,6 +14,7 @@ public interface IDatabaseService : IDisposable
     Task<bool> DeleteEntryAsync(string id);
     Task<int> DeleteEntriesBeforeAsync(DateTime before);
     Task<bool> UpdateEntryAsync(ClipboardEntry entry);
+    Task<ClipboardEntry?> FindByHashAsync(string contentHash);
     Task<int> GetEntryCountAsync();
     Task<long> GetDatabaseSizeAsync();
 }
