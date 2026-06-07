@@ -29,25 +29,6 @@ public partial class MainWindow : Window
         await LoadEntriesAsync();
     }
 
-    // === Window Chrome ===
-
-    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ClickCount == 2)
-            MaximizeWindow_Click(sender, e);
-        else if (e.LeftButton == MouseButtonState.Pressed)
-            DragMove();
-    }
-
-    private void MinimizeWindow_Click(object sender, RoutedEventArgs e)
-        => WindowState = WindowState.Minimized;
-
-    private void MaximizeWindow_Click(object sender, RoutedEventArgs e)
-        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-
-    private void CloseWindow_Click(object sender, RoutedEventArgs e)
-        => Hide();
-
     // === Sidebar Navigation ===
 
     private async void SidebarNav_SelectionChanged(object sender, SelectionChangedEventArgs e)
