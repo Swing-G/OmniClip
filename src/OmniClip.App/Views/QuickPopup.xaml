@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:conv="clr-namespace:OmniClip.App.Converters"
         Title="OmniClip"
-        Width="340" Height="440"
+        Width="360" Height="420"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -14,46 +14,104 @@
 
     <Window.Resources>
         <conv:RelativeTimeConverter x:Key="RelTime"/>
+        <Style x:Key="NoScrollListBox" TargetType="ListBox">
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden"/>
+        </Style>
     </Window.Resources>
 
-    <Border Background="#FF2D2D3D" CornerRadius="8" BorderBrush="#FF444466" BorderThickness="1">
+    <Border Background="White" CornerRadius="0" BorderBrush="#D0D0D0" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect Color="#40000000" BlurRadius="12" ShadowDepth="3" Direction="270"/>
+        </Border.Effect>
+
         <DockPanel>
             <!-- Search Bar -->
-            <Border DockPanel.Dock="Top" Padding="8,6" Background="#FF252535" CornerRadius="8,8,0,0">
+            <Border DockPanel.Dock="Top" Padding="12,10" Background="White"
+                    BorderBrush="#EBEBEB" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="&#x1F50D;" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Grid.Column="0" Text="&#x1F50D;" FontSize="14"
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <TextBox Grid.Column="1" x:Name="SearchBox"
-                             Background="Transparent" Foreground="#FFCCCCCC"
-                             BorderThickness="0" FontSize="13"
-                             CaretBrush="#FF6677EE"
-                             TextChanged="SearchBox_TextChanged"/>
+                             Background="Transparent" Foreground="#1A1A1A"
+                             BorderThickness="0" FontSize="14"
+                             CaretBrush="#4F6EF7"
+                             TextChanged="SearchBox_TextChanged">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="TextBox">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderThickness="0">
+                                                <ScrollViewer x:Name="PART_ContentHost"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
                 </Grid>
             </Border>
 
             <!-- Entry List -->
             <ListBox x:Name="EntryList"
                      DockPanel.Dock="Top"
-                     Background="Transparent"
-                     Foreground="#FFCCCCCC"
+                     Background="White"
+                     Foreground="#1A1A1A"
                      BorderThickness="0"
-                     FontSize="12"
+                     FontSize="13"
+                     Style="{StaticResource NoScrollListBox}"
                      SelectionChanged="EntryList_SelectionChanged"
                      KeyDown="EntryList_KeyDown">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="12,8"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="#F0F0F0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Border"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="#EBF1FF"/>
+                                            <Setter Property="BorderBrush" Value="#4F6EF7"/>
+                                            <Setter TargetName="Border" Property="BorderThickness" Value="2,0,0,0"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="#F7F8FA"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Margin="2,4">
-                            <StackPanel Orientation="Horizontal">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                                 <TextBlock Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
-                                           FontSize="10" Foreground="#FF888888"/>
-                                <TextBlock Text=" · " FontSize="10" Foreground="#FF888888"/>
-                                <TextBlock Text="{Binding SourceApp}" FontSize="10" Foreground="#FF888888"/>
+                                           FontSize="10" Foreground="#999"/>
+                                <TextBlock Text=" · " FontSize="10" Foreground="#CCC"/>
+                                <TextBlock Text="{Binding SourceApp}" FontSize="10" Foreground="#999"/>
                             </StackPanel>
                             <TextBlock Text="{Binding PlainText}"
-                                       FontSize="12" Foreground="#FFDDDDDD"
+                                       FontSize="13" Foreground="#1A1A1A"
                                        TextTrimming="CharacterEllipsis"
                                        MaxHeight="36" TextWrapping="NoWrap"/>
                         </StackPanel>
@@ -62,11 +120,12 @@
             </ListBox>
 
             <!-- Bottom Bar -->
-            <Border DockPanel.Dock="Bottom" Padding="8,4" Background="#FF252535" CornerRadius="0,0,8,8">
+            <Border DockPanel.Dock="Bottom" Padding="10,6" Background="#F7F7F9"
+                    BorderBrush="#EBEBEB" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="&#x2191;&#x2193; 选择  " FontSize="10" Foreground="#FF666666"/>
-                    <TextBlock Text="Enter 粘贴  " FontSize="10" Foreground="#FF666666"/>
-                    <TextBlock Text="Esc 关闭" FontSize="10" Foreground="#FF666666"/>
+                    <TextBlock Text="↑↓ 选择  " FontSize="10" Foreground="#AAA"/>
+                    <TextBlock Text="Enter 粘贴  " FontSize="10" Foreground="#AAA"/>
+                    <TextBlock Text="Esc 关闭" FontSize="10" Foreground="#AAA"/>
                 </StackPanel>
             </Border>
         </DockPanel>
