@@ -126,7 +126,15 @@ public class ClipboardMonitor : IClipboardMonitor
     {
         var entry = new ClipboardEntry();
 
-        if (System.Windows.Clipboard.ContainsText())
+        // Check image first — many apps put text alongside image data,
+        // so ContainsText() would otherwise steal the entry
+        if (System.Windows.Clipboard.ContainsImage())
+        {
+            entry.ContentType = ContentType.Image;
+            entry.PlainText = "[Image]";
+            entry.ContentHash = ComputeHash($"image_{DateTime.UtcNow.Ticks}");
+        }
+        else if (System.Windows.Clipboard.ContainsText())
         {
             var text = System.Windows.Clipboard.GetText();
             if (string.IsNullOrEmpty(text))
@@ -141,11 +149,6 @@ public class ClipboardMonitor : IClipboardMonitor
             {
                 entry.RichText = System.Windows.Clipboard.GetData(System.Windows.DataFormats.Html) as string ?? string.Empty;
             }
-        }
-        else if (System.Windows.Clipboard.ContainsImage())
-        {
-            entry.ContentType = ContentType.Image;
-            entry.ContentHash = ComputeHash($"image_{DateTime.UtcNow.Ticks}");
         }
         else if (System.Windows.Clipboard.ContainsFileDropList())
         {

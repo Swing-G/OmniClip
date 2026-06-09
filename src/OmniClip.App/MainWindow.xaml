@@ -30,6 +30,7 @@
         <conv:RelativeTimeConverter x:Key="RelTime"/>
         <conv:ContentTypeToColorConverter x:Key="TypeToColor"/>
         <conv:ContentTypeToIconConverter x:Key="TypeToIcon"/>
+        <conv:FilePathToImageConverter x:Key="FilePathToImage"/>
 
         <!-- Reference design tokens from docs/UI参考/DESIGN.md -->
         <SolidColorBrush x:Key="BackgroundBrush" Color="#FCF9F8"/>
@@ -311,7 +312,7 @@
                                     BorderBrush="#D9DEE7"
                                     BorderThickness="1"
                                     ClipToBounds="True">
-                                <Image Source="{Binding FilePath}"
+                                <Image Source="{Binding FilePath, Converter={StaticResource FilePathToImage}}"
                                        Stretch="UniformToFill"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
