@@ -118,7 +118,10 @@ public partial class MainWindow : Window
             _ => "Plain Text"
         };
 
-        PreviewMeta.Text = $"Copied from {entry.SourceApp} · {FormatTime(entry.CreatedAt)}";
+        var sizeText = entry.CharCount > 0
+            ? $"{entry.CharCount / 1024.0:F1} KB"
+            : "—";
+        PreviewMeta.Text = $"Copied from {entry.SourceApp} · {FormatTime(entry.CreatedAt)} · {sizeText}";
         PreviewIcon.Text = entry.ContentType switch
         {
             ContentType.Code => "",
@@ -148,6 +151,42 @@ public partial class MainWindow : Window
             await _dbService.DeleteEntryAsync(entry.Id);
             await LoadEntriesAsync();
         }
+    }
+
+    // === Title Bar ===
+
+    private void TitleBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            MaximizeOrRestore();
+        }
+        else if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+        {
+            DragMove();
+        }
+    }
+
+    private void MinimizeBtn_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeBtn_Click(object sender, RoutedEventArgs e)
+    {
+        MaximizeOrRestore();
+    }
+
+    private void CloseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void MaximizeOrRestore()
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
     }
 
     // === Footer Buttons ===
@@ -201,7 +240,8 @@ public class FeedItemStyleSelector : StyleSelector
 }
 
 /// <summary>
-/// Chooses DataTemplate: simple label for SectionHeader, card layout for ClipboardEntry.
+/// Chooses DataTemplate: ImageCardTemplate for images, SectionTemplate for headers,
+/// CardTemplate for everything else.
 /// </summary>
 public class FeedTemplateSelector : DataTemplateSelector
 {
@@ -212,6 +252,9 @@ public class FeedTemplateSelector : DataTemplateSelector
 
         if (item is SectionHeader)
             return window.FindResource("SectionTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
+
+        if (item is ClipboardEntry entry && entry.ContentType == ContentType.Image)
+            return window.FindResource("ImageCardTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
 
         return window.FindResource("CardTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
     }

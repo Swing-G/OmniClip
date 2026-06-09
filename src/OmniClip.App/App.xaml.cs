@@ -69,14 +69,16 @@ public partial class App : Application
 
     private void SetupTrayIcon()
     {
+        var iconUri = new Uri("pack://application:,,,/Resources/logo.png");
         _trayIcon = new TaskbarIcon
         {
+            IconSource = new System.Windows.Media.Imaging.BitmapImage(iconUri),
             ToolTipText = "OmniClip - 智能剪贴板",
             Visibility = Visibility.Visible,
             ContextMenu = CreateTrayContextMenu()
         };
 
-        _trayIcon.TrayLeftMouseDown += (s, e) => ShowQuickPopup();
+        _trayIcon.TrayLeftMouseDown += (s, e) => ShowMainWindow();
     }
 
     private ContextMenu CreateTrayContextMenu()

@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -16,5 +17,10 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="..\..\logo\logo.png" Link="Resources\logo.png" />
+    <Resource Include="..\..\logo\logo.svg" Link="Resources\logo.svg" />
+  </ItemGroup>
 
 </Project>
