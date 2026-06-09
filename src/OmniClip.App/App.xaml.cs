@@ -1,5 +1,9 @@
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using Hardcodet.Wpf.TaskbarNotification;
 using OmniClip.Core.Interfaces;
 using OmniClip.Core.Models;
@@ -131,6 +135,26 @@ public partial class App : Application
         if (entry.CharCount > 0 && entry.CharCount < _config.MinContentLength)
             return;
 
+        // Save clipboard image to local file before inserting
+        if (entry.ContentType == ContentType.Image && _storageService != null)
+        {
+            try
+            {
+                var bitmap = Clipboard.GetImage();
+                if (bitmap != null)
+                {
+                    var savedPath = await SaveClipboardImageAsync(bitmap);
+                    entry.FilePath = savedPath;
+                    entry.FileName = System.IO.Path.GetFileName(savedPath);
+                    entry.ContentHash = ComputeFileHash(savedPath);
+                }
+            }
+            catch
+            {
+                // Image save failed, still store the entry without file
+            }
+        }
+
         // Dedup: if same content hash exists, just update timestamp (move to top)
         var existing = await _databaseService.FindByHashAsync(entry.ContentHash);
         if (existing != null)
@@ -218,5 +242,32 @@ public partial class App : Application
         _databaseService?.Dispose();
         _trayIcon?.Dispose();
         base.OnExit(e);
+    }
+
+    private async Task<string> SaveClipboardImageAsync(BitmapSource bitmap)
+    {
+        var filesDir = System.IO.Path.Combine(_config.StoragePath, "files");
+        var monthDir = System.IO.Path.Combine(filesDir, DateTime.UtcNow.ToString("yyyy-MM"));
+        Directory.CreateDirectory(monthDir);
+
+        var fileName = $"{Guid.NewGuid()}.png";
+        var filePath = System.IO.Path.Combine(monthDir, fileName);
+
+        await Task.Run(() =>
+        {
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+            encoder.Save(stream);
+        });
+
+        return filePath;
+    }
+
+    private static string ComputeFileHash(string filePath)
+    {
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        var hash = SHA256.HashData(stream);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }
