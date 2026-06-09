@@ -45,6 +45,32 @@ public class ContentTypeToIconConverter : IValueConverter
         => throw new NotSupportedException();
 }
 
+public class FileNameToIconConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var name = value as string ?? "";
+        var ext = Path.GetExtension(name).ToLowerInvariant();
+        return ext switch
+        {
+            ".pdf" => "",           // PDF
+            ".doc" or ".docx" => "", // Word
+            ".xls" or ".xlsx" => "", // Excel
+            ".ppt" or ".pptx" => "", // PowerPoint
+            ".txt" or ".md" or ".json" or ".xml" or ".csv" or ".log" => "", // text
+            ".mp4" or ".avi" or ".mov" or ".mkv" or ".wmv" or ".webm" => "", // video
+            ".mp3" or ".wav" or ".flac" or ".aac" or ".ogg" => "", // audio
+            ".zip" or ".rar" or ".7z" or ".tar" or ".gz" => "",   // archive
+            ".exe" or ".msi" => "",   // app
+            ".html" or ".htm" => "",  // HTML
+            _ => "",                  // default file
+        };
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 public class FilePathToImageConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

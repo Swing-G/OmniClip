@@ -135,7 +135,18 @@ public partial class App : Application
         if (entry.CharCount > 0 && entry.CharCount < _config.MinContentLength)
             return;
 
-        // Save clipboard image to local file before inserting
+        // Dedup first: skip everything if this content already exists
+        var existing = await _databaseService.FindByHashAsync(entry.ContentHash);
+        if (existing != null)
+        {
+            existing.CreatedAt = DateTime.UtcNow;
+            existing.LastAccessed = DateTime.UtcNow;
+            await _databaseService.UpdateEntryAsync(existing);
+            UpdateTrayInfo();
+            return;
+        }
+
+        // New entry — save image file before inserting
         if (entry.ContentType == ContentType.Image && _storageService != null)
         {
             try
@@ -158,7 +169,6 @@ public partial class App : Application
                 {
                     entry.FilePath = savedPath;
                     entry.FileName = System.IO.Path.GetFileName(savedPath);
-                    entry.ContentHash = ComputeFileHash(savedPath);
                 }
             }
             catch
@@ -167,19 +177,7 @@ public partial class App : Application
             }
         }
 
-        // Dedup: if same content hash exists, just update timestamp (move to top)
-        var existing = await _databaseService.FindByHashAsync(entry.ContentHash);
-        if (existing != null)
-        {
-            existing.CreatedAt = DateTime.UtcNow;
-            existing.LastAccessed = DateTime.UtcNow;
-            await _databaseService.UpdateEntryAsync(existing);
-        }
-        else
-        {
-            await _databaseService.InsertEntryAsync(entry);
-        }
-
+        await _databaseService.InsertEntryAsync(entry);
         UpdateTrayInfo();
     }
 

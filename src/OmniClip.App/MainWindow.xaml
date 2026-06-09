@@ -31,6 +31,7 @@
         <conv:ContentTypeToColorConverter x:Key="TypeToColor"/>
         <conv:ContentTypeToIconConverter x:Key="TypeToIcon"/>
         <conv:FilePathToImageConverter x:Key="FilePathToImage"/>
+        <conv:FileNameToIconConverter x:Key="FileIcon"/>
 
         <!-- Reference design tokens from docs/UI参考/DESIGN.md -->
         <SolidColorBrush x:Key="BackgroundBrush" Color="#FCF9F8"/>
@@ -335,6 +336,48 @@
                 </Grid>
             </Border>
         </DataTemplate>
+
+        <DataTemplate x:Key="FileCardTemplate">
+            <Border MinHeight="68" Padding="18,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Style="{StaticResource IconText}"
+                               Text="{Binding FileName, Converter={StaticResource FileIcon}}"
+                               Foreground="{Binding ContentType, Converter={StaticResource TypeToColor}}"
+                               VerticalAlignment="Top"
+                               Width="24"
+                               TextAlignment="Center"
+                               Margin="0,2,0,0"/>
+
+                    <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                        <TextBlock Text="{Binding SourceApp}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="#1B1B1B"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding FileName}"
+                                   Margin="0,5,0,0"
+                                   FontSize="14"
+                                   Foreground="#202734"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="NoWrap"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
+                               Margin="14,4,0,0"
+                               VerticalAlignment="Top"
+                               FontSize="12"
+                               Foreground="#202734"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
 
     <Border BorderBrush="#C0C7D4" BorderThickness="1" CornerRadius="8" Background="#FCF9F8" ClipToBounds="True">
@@ -576,14 +619,27 @@
                             </Grid>
                         </Border>
 
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Padding="26,26,26,26">
-                            <TextBlock x:Name="PreviewText"
-                                       Text="Select a clipboard item to preview its content here."
-                                       FontFamily="Consolas"
-                                       FontSize="15"
-                                       LineHeight="24"
-                                       Foreground="#202734"
-                                       TextWrapping="Wrap"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="26,26,26,26">
+                            <Grid>
+                                <TextBlock x:Name="PreviewText"
+                                           Text="Select a clipboard item to preview its content here."
+                                           FontFamily="Consolas"
+                                           FontSize="15"
+                                           LineHeight="24"
+                                           Foreground="#202734"
+                                           TextWrapping="Wrap"
+                                           Cursor="Hand"
+                                           MouseDown="PreviewText_MouseDown"
+                                           Visibility="Visible"/>
+                                <Image x:Name="PreviewImage"
+                                       Stretch="Uniform"
+                                       StretchDirection="DownOnly"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
+                                       Cursor="Hand"
+                                       MouseDown="PreviewImage_MouseDown"
+                                       Visibility="Collapsed"/>
+                            </Grid>
                         </ScrollViewer>
                     </Grid>
                 </Border>

@@ -1,6 +1,10 @@
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows.Media.Imaging;
 using OmniClip.Core.Interfaces;
 using OmniClip.Core.Models;
 using Path = System.IO.Path;
@@ -165,10 +169,14 @@ public class ClipboardMonitor : IClipboardMonitor
         {
             entry.ContentType = ContentType.Image;
             entry.PlainText = "[Image]";
-            entry.ContentHash = ComputeHash($"image_{DateTime.UtcNow.Ticks}");
 
             // Extract bitmap immediately while clipboard data is still alive
             entry.ImageBytes = ExtractImageBytes(dataObj);
+
+            // Use image bytes hash for dedup — identical screenshots will match
+            entry.ContentHash = entry.ImageBytes != null
+                ? ComputeHash(Convert.ToHexString(SHA256.HashData(entry.ImageBytes)))
+                : ComputeHash($"image_{DateTime.UtcNow.Ticks}");
         }
         // 3) Text
         else if (dataObj.GetDataPresent(System.Windows.DataFormats.Text))
@@ -241,42 +249,74 @@ public class ClipboardMonitor : IClipboardMonitor
 
     /// <summary>
     /// Extract image data from clipboard immediately, while the data is still valid.
-    /// Tries multiple formats: WPF Bitmap, PNG stream, DIB.
+    /// Enumerates all clipboard formats and converts whatever it finds to PNG bytes.
+    /// Handles PNG streams (Snipaste, browsers), DIB (Snipaste, screenshot tools),
+    /// and WPF BitmapSource (various apps).
+    /// </summary>
+    /// <summary>
+    /// Extract image data from clipboard immediately, while the data is still valid.
+    /// Uses GDI+ (System.Drawing) as the primary path because it handles DIB formats
+    /// from Snipaste, screenshot tools, and browsers correctly. Falls back to WPF
+    /// BitmapSource and raw PNG format enumeration.
     /// </summary>
     private static byte[]? ExtractImageBytes(System.Windows.IDataObject dataObj)
     {
         try
         {
-            // Try WPF Bitmap
-            if (dataObj.GetDataPresent(System.Windows.DataFormats.Bitmap))
+            // Method 1: System.Windows.Forms.Clipboard.GetImage() (GDI+)
+            // This is the most reliable for DIB-based clipboard images from Snipaste,
+            // Snipping Tool, and browser "Copy Image". It handles bottom-up DIBs,
+            // palettized formats, and alpha channels correctly.
+            try
             {
-                var bitmap = dataObj.GetData(System.Windows.DataFormats.Bitmap) as System.Windows.Media.Imaging.BitmapSource;
-                if (bitmap != null)
-                    return EncodeToPng(bitmap);
-            }
-
-            // Try PNG stream
-            if (dataObj.GetDataPresent("PNG"))
-            {
-                var pngData = dataObj.GetData("PNG") as byte[];
-                if (pngData != null)
-                    return pngData;
-
-                var pngStream = dataObj.GetData("PNG") as System.IO.Stream;
-                if (pngStream != null)
+                // Must be on STA thread — CaptureClipboardContentInternal runs on UI thread
+                using var gdiBmp = System.Windows.Forms.Clipboard.GetImage() as Bitmap;
+                if (gdiBmp != null && gdiBmp.Width > 0 && gdiBmp.Height > 0)
                 {
-                    using var ms = new System.IO.MemoryStream();
-                    pngStream.CopyTo(ms);
-                    return ms.ToArray();
+                    // Verify the bitmap has actual content (not all-white or all-black)
+                    if (HasVisibleContent(gdiBmp))
+                    {
+                        using var ms = new MemoryStream();
+                        gdiBmp.Save(ms, ImageFormat.Png);
+                        var result = ms.ToArray();
+                        if (result.Length > 100) return result;
+                    }
                 }
             }
-
-            // Try DIB
-            if (dataObj.GetDataPresent(System.Windows.DataFormats.Dib))
+            catch
             {
-                var bitmap = dataObj.GetData(System.Windows.DataFormats.Dib) as System.Windows.Media.Imaging.BitmapSource;
-                if (bitmap != null)
-                    return EncodeToPng(bitmap);
+                // GDI+ clipboard access failed, try other methods
+            }
+
+            // Method 2: WPF Clipboard.GetImage()
+            try
+            {
+                var wpfImg = System.Windows.Clipboard.GetImage();
+                if (wpfImg != null && wpfImg.PixelWidth > 0 && wpfImg.PixelHeight > 0)
+                {
+                    return EncodeWpfToPng(wpfImg);
+                }
+            }
+            catch { }
+
+            // Method 3: Direct PNG format (some browsers)
+            if (dataObj.GetDataPresent("PNG"))
+            {
+                var pngBytes = ExtractRawFormat(dataObj, "PNG");
+                if (pngBytes != null && IsPngSignature(pngBytes))
+                    return pngBytes;
+            }
+
+            // Method 4: Enumerate all formats and try raw decoding
+            foreach (var format in dataObj.GetFormats())
+            {
+                var rawBytes = ExtractRawFormat(dataObj, format);
+                if (rawBytes == null || rawBytes.Length < 64) continue;
+                if (IsPngSignature(rawBytes)) return rawBytes;
+
+                // Try GDI+ decode
+                var decoded = TryGdiDecode(rawBytes);
+                if (decoded != null) return decoded;
             }
         }
         catch
@@ -287,14 +327,87 @@ public class ClipboardMonitor : IClipboardMonitor
         return null;
     }
 
-    private static byte[] EncodeToPng(System.Windows.Media.Imaging.BitmapSource bitmap)
+    /// <summary>
+    /// Check if a GDI+ bitmap has non-trivial content (not all-one-color).
+    /// Samples a few pixels to avoid saving blank images.
+    /// </summary>
+    private static bool HasVisibleContent(Bitmap bmp)
     {
-        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
-        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
-        using var ms = new System.IO.MemoryStream();
+        try
+        {
+            if (bmp.Width <= 2 || bmp.Height <= 2) return true;
+            // Sample corners and center
+            var samplePoints = new[]
+            {
+                new Point(0, 0),
+                new Point(bmp.Width - 1, 0),
+                new Point(0, bmp.Height - 1),
+                new Point(bmp.Width - 1, bmp.Height - 1),
+                new Point(bmp.Width / 2, bmp.Height / 2)
+            };
+            var first = bmp.GetPixel(samplePoints[0].X, samplePoints[0].Y);
+            foreach (var pt in samplePoints.Skip(1))
+            {
+                var px = bmp.GetPixel(pt.X, pt.Y);
+                if (px.ToArgb() != first.ToArgb()) return true;
+            }
+            // All sampled pixels are identical — might be a solid-color placeholder
+            // But return true anyway, one-color images are rare but valid
+            return true;
+        }
+        catch { return true; }
+    }
+
+    private static byte[]? ExtractRawFormat(System.Windows.IDataObject dataObj, string format)
+    {
+        var data = dataObj.GetData(format, autoConvert: false);
+        if (data is byte[] bytes && bytes.Length > 0) return bytes;
+        if (data is Stream stream)
+        {
+            try
+            {
+                if (stream.CanSeek) stream.Position = 0;
+                using var ms = new MemoryStream();
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
+            catch { }
+        }
+        return null;
+    }
+
+    private static byte[]? TryGdiDecode(byte[] bytes)
+    {
+        try
+        {
+            using var ms = new MemoryStream(bytes);
+            using var bmp = new Bitmap(ms);
+            if (bmp.Width <= 0 || bmp.Height <= 0) return null;
+            using var outMs = new MemoryStream();
+            bmp.Save(outMs, ImageFormat.Png);
+            return outMs.ToArray();
+        }
+        catch { return null; }
+    }
+
+    private static byte[] EncodeWpfToPng(BitmapSource bitmap)
+    {
+        if (bitmap.Format != System.Windows.Media.PixelFormats.Bgra32)
+        {
+            bitmap = new FormatConvertedBitmap(bitmap,
+                System.Windows.Media.PixelFormats.Bgra32, null, 0);
+        }
+
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var ms = new MemoryStream();
         encoder.Save(ms);
         return ms.ToArray();
     }
+
+    private static bool IsPngSignature(byte[] bytes)
+        => bytes.Length >= 8 &&
+           bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
 
     public void Dispose()
     {

@@ -1,5 +1,7 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using OmniClip.Core.Interfaces;
 using OmniClip.Core.Models;
 using Clipboard = System.Windows.Clipboard;
@@ -132,7 +134,70 @@ public partial class MainWindow : Window
         };
         PreviewLangLabel.Text = entry.ContentType.ToString().ToLowerInvariant();
 
-        PreviewText.Text = entry.PlainText;
+        // Toggle between text / image / file preview
+        bool isImage = entry.ContentType == ContentType.Image
+            && !string.IsNullOrEmpty(entry.FilePath)
+            && File.Exists(entry.FilePath);
+
+        bool isFile = entry.ContentType == ContentType.File
+            && !string.IsNullOrEmpty(entry.FilePath)
+            && File.Exists(entry.FilePath);
+
+        if (isImage)
+        {
+            PreviewImage.Visibility = Visibility.Visible;
+            PreviewText.Visibility = Visibility.Collapsed;
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(entry.FilePath);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            PreviewImage.Source = bitmap;
+        }
+        else if (isFile)
+        {
+            var ext = Path.GetExtension(entry.FileName).ToLowerInvariant();
+            bool isTextFile = ext is ".txt" or ".md" or ".json" or ".xml" or ".csv" or ".log" or ".ini" or ".cfg" or ".yaml" or ".yml";
+
+            if (isTextFile)
+            {
+                try
+                {
+                    PreviewImage.Visibility = Visibility.Collapsed;
+                    PreviewText.Visibility = Visibility.Visible;
+                    PreviewText.Text = File.ReadAllText(entry.FilePath);
+                }
+                catch
+                {
+                    PreviewText.Text = $"Cannot read file:\n{entry.FilePath}";
+                }
+            }
+            else
+            {
+                // Show file info for binary/non-text files
+                PreviewImage.Visibility = Visibility.Collapsed;
+                PreviewText.Visibility = Visibility.Visible;
+                var fileInfo = new System.IO.FileInfo(entry.FilePath);
+                var sizeKb = fileInfo.Length / 1024.0;
+                var sizeStr = sizeKb > 1024
+                    ? $"{sizeKb / 1024:F1} MB"
+                    : $"{sizeKb:F1} KB";
+                PreviewText.Text = $"📄 {entry.FileName}\n\n"
+                    + $"Size: {sizeStr}\n"
+                    + $"Type: {ext.TrimStart('.').ToUpper()} File\n\n"
+                    + $"Path: {entry.FilePath}\n\n"
+                    + $"Click to open in default app";
+            }
+
+            // Enable Open button
+            PreviewLangLabel.Text = ext.TrimStart('.').ToUpper();
+        }
+        else
+        {
+            PreviewImage.Visibility = Visibility.Collapsed;
+            PreviewText.Visibility = Visibility.Visible;
+            PreviewText.Text = entry.PlainText;
+        }
     }
 
     // === Preview Actions ===
@@ -187,6 +252,33 @@ public partial class MainWindow : Window
         WindowState = WindowState == WindowState.Maximized
             ? WindowState.Normal
             : WindowState.Maximized;
+    }
+
+    private void PreviewImage_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        OpenSelectedFile();
+    }
+
+    private void PreviewText_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        OpenSelectedFile();
+    }
+
+    private void OpenSelectedFile()
+    {
+        if (EntryListMain.SelectedItem is ClipboardEntry entry &&
+            !string.IsNullOrEmpty(entry.FilePath) && File.Exists(entry.FilePath))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = entry.FilePath,
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
     }
 
     // === Footer Buttons ===
@@ -253,8 +345,13 @@ public class FeedTemplateSelector : DataTemplateSelector
         if (item is SectionHeader)
             return window.FindResource("SectionTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
 
-        if (item is ClipboardEntry entry && entry.ContentType == ContentType.Image)
-            return window.FindResource("ImageCardTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
+        if (item is ClipboardEntry entry)
+        {
+            if (entry.ContentType == ContentType.Image)
+                return window.FindResource("ImageCardTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
+            if (entry.ContentType == ContentType.File)
+                return window.FindResource("FileCardTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
+        }
 
         return window.FindResource("CardTemplate") as DataTemplate ?? base.SelectTemplate(item, container);
     }
