@@ -50,7 +50,7 @@
         <SolidColorBrush x:Key="SecondaryContainerBrush" Color="#DCDDDD"/>
         <SolidColorBrush x:Key="OnSecondaryContainerBrush" Color="#5F6161"/>
 
-        <DropShadowEffect x:Key="PreviewShadow" BlurRadius="40" ShadowDepth="12" Opacity="0.08" Color="#000000"/>
+        <DropShadowEffect x:Key="PreviewShadow" BlurRadius="60" ShadowDepth="16" Opacity="0.12" Color="#000000"/>
         <DropShadowEffect x:Key="CardHoverShadow" BlurRadius="12" ShadowDepth="4" Opacity="0.06" Color="#000000"/>
 
         <Style x:Key="IconText" TargetType="TextBlock">
@@ -615,7 +615,7 @@
         </Border>
 
         <!-- Preview pane -->
-        <Border Grid.Column="2" Background="#FCF9F8">
+        <Border Grid.Column="2" Background="#F2EFEE">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -659,7 +659,7 @@
 
                 <Border Grid.Row="1"
                         Margin="32,0,32,32"
-                        Background="White"
+                        Background="#FDFCFB"
                         CornerRadius="10"
                         BorderBrush="#E5E2E1"
                         BorderThickness="1"

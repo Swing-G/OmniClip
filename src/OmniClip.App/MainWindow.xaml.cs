@@ -141,9 +141,7 @@ public partial class MainWindow : Window
             _ => "Plain Text"
         };
 
-        var sizeText = entry.CharCount > 0
-            ? $"{entry.CharCount / 1024.0:F1} KB"
-            : "—";
+        var sizeText = GetSizeText(entry);
         PreviewMeta.Text = $"Copied from {entry.SourceApp} · {FormatTime(entry.CreatedAt)} · {sizeText}";
         PreviewIcon.Text = entry.ContentType switch
         {
@@ -331,6 +329,23 @@ public partial class MainWindow : Window
     }
 
     // === Helpers ===
+
+    private static string GetSizeText(ClipboardEntry entry)
+    {
+        // For file/image entries, use actual file size
+        if ((entry.ContentType == ContentType.File || entry.ContentType == ContentType.Image)
+            && !string.IsNullOrEmpty(entry.FilePath) && File.Exists(entry.FilePath))
+        {
+            var len = new System.IO.FileInfo(entry.FilePath).Length;
+            return len > 1024 * 1024
+                ? $"{len / (1024.0 * 1024):F1} MB"
+                : $"{len / 1024.0:F1} KB";
+        }
+        // For text entries, use character count
+        if (entry.CharCount > 0)
+            return $"{entry.CharCount / 1024.0:F1} KB";
+        return "—";
+    }
 
     private static string FormatTime(DateTime dt)
     {
