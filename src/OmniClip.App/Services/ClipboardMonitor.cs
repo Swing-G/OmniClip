@@ -99,17 +99,24 @@ public class ClipboardMonitor : IClipboardMonitor
     {
         if (!_isMonitoring) return;
 
-        try
+        // Retry up to 5 times with 20ms delay — clipboard may be locked by source app
+        for (int retry = 0; retry < 5; retry++)
         {
-            var entry = CaptureClipboardContent();
-            if (entry != null)
+            try
             {
-                ClipboardChanged?.Invoke(this, entry);
+                var entry = CaptureClipboardContent();
+                if (entry != null)
+                {
+                    ClipboardChanged?.Invoke(this, entry);
+                    return;
+                }
+                return; // No content, stop retrying
             }
-        }
-        catch
-        {
-            // Clipboard might be locked by another process, ignore
+            catch
+            {
+                if (retry < 4)
+                    System.Threading.Thread.Sleep(20);
+            }
         }
     }
 
@@ -122,21 +129,32 @@ public class ClipboardMonitor : IClipboardMonitor
         return CaptureClipboardContentInternal();
     }
 
-    private ClipboardEntry? CaptureClipboardContentInternal()
+    private static ClipboardEntry? CaptureClipboardContentInternal()
     {
         var entry = new ClipboardEntry();
 
-        // Check image first — many apps put text alongside image data,
-        // so ContainsText() would otherwise steal the entry
-        if (System.Windows.Clipboard.ContainsImage())
+        // Check all formats via the data object for more reliable detection
+        var dataObj = System.Windows.Clipboard.GetDataObject();
+        if (dataObj == null) return null;
+
+        var formats = dataObj.GetFormats();
+
+        // Check image first — many apps put text alongside image data
+        bool hasImage = formats.Any(f =>
+            f == System.Windows.DataFormats.Bitmap ||
+            f == "PNG" ||
+            f == "DeviceIndependentBitmap" ||
+            f == System.Windows.DataFormats.Dib);
+
+        if (hasImage)
         {
             entry.ContentType = ContentType.Image;
             entry.PlainText = "[Image]";
             entry.ContentHash = ComputeHash($"image_{DateTime.UtcNow.Ticks}");
         }
-        else if (System.Windows.Clipboard.ContainsText())
+        else if (dataObj.GetDataPresent(System.Windows.DataFormats.Text))
         {
-            var text = System.Windows.Clipboard.GetText();
+            var text = dataObj.GetData(System.Windows.DataFormats.Text) as string;
             if (string.IsNullOrEmpty(text))
                 return null;
 
@@ -145,21 +163,21 @@ public class ClipboardMonitor : IClipboardMonitor
             entry.ContentHash = ComputeHash(text);
             entry.CharCount = text.Length;
 
-            if (System.Windows.Clipboard.ContainsData(System.Windows.DataFormats.Html))
+            if (dataObj.GetDataPresent(System.Windows.DataFormats.Html))
             {
-                entry.RichText = System.Windows.Clipboard.GetData(System.Windows.DataFormats.Html) as string ?? string.Empty;
+                entry.RichText = dataObj.GetData(System.Windows.DataFormats.Html) as string ?? string.Empty;
             }
         }
-        else if (System.Windows.Clipboard.ContainsFileDropList())
+        else if (dataObj.GetDataPresent(System.Windows.DataFormats.FileDrop))
         {
-            var files = System.Windows.Clipboard.GetFileDropList();
-            if (files.Count == 0) return null;
+            var files = dataObj.GetData(System.Windows.DataFormats.FileDrop) as string[];
+            if (files == null || files.Length == 0) return null;
 
             entry.ContentType = ContentType.File;
-            entry.FilePath = files[0]!;
+            entry.FilePath = files[0];
             entry.FileName = Path.GetFileName(files[0]) ?? string.Empty;
-            entry.ContentHash = ComputeHash(string.Join("|", files.Cast<string>()));
-            entry.PlainText = string.Join(Environment.NewLine, files.Cast<string>());
+            entry.ContentHash = ComputeHash(string.Join("|", files));
+            entry.PlainText = string.Join(Environment.NewLine, files);
         }
         else
         {

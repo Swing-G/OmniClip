@@ -337,7 +337,7 @@
         </DataTemplate>
     </Window.Resources>
 
-    <Border BorderBrush="#C0C7D4" BorderThickness="1" ClipToBounds="True">
+    <Border BorderBrush="#C0C7D4" BorderThickness="1" CornerRadius="8" Background="#FCF9F8" ClipToBounds="True">
     <Grid Background="#FCF9F8">
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>

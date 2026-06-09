@@ -140,13 +140,38 @@ public partial class App : Application
         {
             try
             {
-                var bitmap = Clipboard.GetImage();
-                if (bitmap != null)
+                var dataObj = Clipboard.GetDataObject();
+                if (dataObj != null)
                 {
-                    var savedPath = await SaveClipboardImageAsync(bitmap);
-                    entry.FilePath = savedPath;
-                    entry.FileName = System.IO.Path.GetFileName(savedPath);
-                    entry.ContentHash = ComputeFileHash(savedPath);
+                    BitmapSource? bitmap = null;
+
+                    // Try standard WPF bitmap first
+                    if (dataObj.GetDataPresent(System.Windows.DataFormats.Bitmap))
+                        bitmap = dataObj.GetData(System.Windows.DataFormats.Bitmap) as BitmapSource;
+
+                    // Fallback: try PNG stream format
+                    if (bitmap == null && dataObj.GetDataPresent("PNG"))
+                    {
+                        using var pngStream = dataObj.GetData("PNG") as System.IO.Stream;
+                        if (pngStream != null)
+                        {
+                            var decoder = new PngBitmapDecoder(pngStream,
+                                BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                            bitmap = decoder.Frames[0];
+                        }
+                    }
+
+                    // Fallback: try DIB format
+                    if (bitmap == null && dataObj.GetDataPresent(System.Windows.DataFormats.Dib))
+                        bitmap = dataObj.GetData(System.Windows.DataFormats.Dib) as BitmapSource;
+
+                    if (bitmap != null)
+                    {
+                        var savedPath = await SaveClipboardImageAsync(bitmap);
+                        entry.FilePath = savedPath;
+                        entry.FileName = System.IO.Path.GetFileName(savedPath);
+                        entry.ContentHash = ComputeFileHash(savedPath);
+                    }
                 }
             }
             catch
