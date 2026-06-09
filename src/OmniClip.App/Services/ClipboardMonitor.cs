@@ -139,19 +139,35 @@ public class ClipboardMonitor : IClipboardMonitor
 
         var formats = dataObj.GetFormats();
 
-        // Check image first — many apps put text alongside image data
-        bool hasImage = formats.Any(f =>
+        // 1) FileDrop first — file copies in Explorer also include a bitmap preview,
+        //    so we must check files before images to capture the actual file path
+        if (dataObj.GetDataPresent(System.Windows.DataFormats.FileDrop))
+        {
+            var files = dataObj.GetData(System.Windows.DataFormats.FileDrop) as string[];
+            if (files != null && files.Length > 0)
+            {
+                var ext = Path.GetExtension(files[0])?.ToLowerInvariant();
+                bool isImageFile = ext is ".png" or ".jpg" or ".jpeg" or ".bmp" or ".gif" or ".webp" or ".ico" or ".tiff";
+
+                entry.ContentType = isImageFile ? ContentType.Image : ContentType.File;
+                entry.FilePath = files[0];
+                entry.FileName = Path.GetFileName(files[0]) ?? string.Empty;
+                entry.ContentHash = ComputeHash(string.Join("|", files));
+                entry.PlainText = string.Join(Environment.NewLine, files);
+            }
+        }
+        // 2) Image (screenshots, browser "copy image", Snipaste etc.)
+        else if (formats.Any(f =>
             f == System.Windows.DataFormats.Bitmap ||
             f == "PNG" ||
             f == "DeviceIndependentBitmap" ||
-            f == System.Windows.DataFormats.Dib);
-
-        if (hasImage)
+            f == System.Windows.DataFormats.Dib))
         {
             entry.ContentType = ContentType.Image;
             entry.PlainText = "[Image]";
             entry.ContentHash = ComputeHash($"image_{DateTime.UtcNow.Ticks}");
         }
+        // 3) Text
         else if (dataObj.GetDataPresent(System.Windows.DataFormats.Text))
         {
             var text = dataObj.GetData(System.Windows.DataFormats.Text) as string;
@@ -167,17 +183,6 @@ public class ClipboardMonitor : IClipboardMonitor
             {
                 entry.RichText = dataObj.GetData(System.Windows.DataFormats.Html) as string ?? string.Empty;
             }
-        }
-        else if (dataObj.GetDataPresent(System.Windows.DataFormats.FileDrop))
-        {
-            var files = dataObj.GetData(System.Windows.DataFormats.FileDrop) as string[];
-            if (files == null || files.Length == 0) return null;
-
-            entry.ContentType = ContentType.File;
-            entry.FilePath = files[0];
-            entry.FileName = Path.GetFileName(files[0]) ?? string.Empty;
-            entry.ContentHash = ComputeHash(string.Join("|", files));
-            entry.PlainText = string.Join(Environment.NewLine, files);
         }
         else
         {

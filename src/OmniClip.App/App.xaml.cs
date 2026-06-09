@@ -140,38 +140,58 @@ public partial class App : Application
         {
             try
             {
-                var dataObj = Clipboard.GetDataObject();
-                if (dataObj != null)
+                string? savedPath = null;
+
+                // Already have a file path (e.g. file copy from Explorer)?
+                // Copy it to our storage so it persists even if original is deleted
+                if (!string.IsNullOrEmpty(entry.FilePath) && File.Exists(entry.FilePath))
                 {
-                    BitmapSource? bitmap = null;
+                    var ext = System.IO.Path.GetExtension(entry.FilePath);
+                    savedPath = await _storageService.SaveFileAsync(entry.FilePath, ext);
+                }
 
-                    // Try standard WPF bitmap first
-                    if (dataObj.GetDataPresent(System.Windows.DataFormats.Bitmap))
-                        bitmap = dataObj.GetData(System.Windows.DataFormats.Bitmap) as BitmapSource;
-
-                    // Fallback: try PNG stream format
-                    if (bitmap == null && dataObj.GetDataPresent("PNG"))
+                // Otherwise extract bitmap data from clipboard
+                if (savedPath == null)
+                {
+                    var dataObj = Clipboard.GetDataObject();
+                    if (dataObj != null)
                     {
-                        using var pngStream = dataObj.GetData("PNG") as System.IO.Stream;
-                        if (pngStream != null)
+                        BitmapSource? bitmap = null;
+
+                        if (dataObj.GetDataPresent(System.Windows.DataFormats.Bitmap))
+                            bitmap = dataObj.GetData(System.Windows.DataFormats.Bitmap) as BitmapSource;
+
+                        if (bitmap == null && dataObj.GetDataPresent("PNG"))
                         {
-                            var decoder = new PngBitmapDecoder(pngStream,
-                                BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-                            bitmap = decoder.Frames[0];
+                            var pngStream = dataObj.GetData("PNG") as MemoryStream;
+                            if (pngStream == null && dataObj.GetData("PNG") is Stream rawStream)
+                            {
+                                pngStream = new MemoryStream();
+                                rawStream.CopyTo(pngStream);
+                                pngStream.Position = 0;
+                                rawStream.Dispose();
+                            }
+                            if (pngStream != null)
+                            {
+                                var decoder = new PngBitmapDecoder(pngStream,
+                                    BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                                bitmap = decoder.Frames[0];
+                            }
                         }
-                    }
 
-                    // Fallback: try DIB format
-                    if (bitmap == null && dataObj.GetDataPresent(System.Windows.DataFormats.Dib))
-                        bitmap = dataObj.GetData(System.Windows.DataFormats.Dib) as BitmapSource;
+                        if (bitmap == null && dataObj.GetDataPresent(System.Windows.DataFormats.Dib))
+                            bitmap = dataObj.GetData(System.Windows.DataFormats.Dib) as BitmapSource;
 
-                    if (bitmap != null)
-                    {
-                        var savedPath = await SaveClipboardImageAsync(bitmap);
-                        entry.FilePath = savedPath;
-                        entry.FileName = System.IO.Path.GetFileName(savedPath);
-                        entry.ContentHash = ComputeFileHash(savedPath);
+                        if (bitmap != null)
+                            savedPath = await SaveClipboardImageAsync(bitmap);
                     }
+                }
+
+                if (savedPath != null)
+                {
+                    entry.FilePath = savedPath;
+                    entry.FileName = System.IO.Path.GetFileName(savedPath);
+                    entry.ContentHash = ComputeFileHash(savedPath);
                 }
             }
             catch
