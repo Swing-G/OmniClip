@@ -325,7 +325,10 @@ public partial class MainWindow : Window
 
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        System.Windows.MessageBox.Show("Settings coming soon.", "OmniClip");
+        // Get the App instance to access config
+        var app = Application.Current as App;
+        if (app == null) return;
+        app.OpenSettings();
     }
 
     // === Helpers ===

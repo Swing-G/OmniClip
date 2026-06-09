@@ -136,6 +136,26 @@ public partial class App : Application
         if (IsSelfTriggered(entry.SourceApp))
             return;
 
+        // Content type filter
+        if (!_config.CaptureText && entry.ContentType != ContentType.Image && entry.ContentType != ContentType.File)
+            return;
+        if (!_config.CaptureImage && entry.ContentType == ContentType.Image)
+            return;
+        if (!_config.CaptureFile && entry.ContentType == ContentType.File)
+            return;
+
+        // Excluded apps
+        if (_config.ExcludedApps.Count > 0 &&
+            _config.ExcludedApps.Any(app => string.Equals(entry.SourceApp, app, StringComparison.OrdinalIgnoreCase)))
+            return;
+
+        // Text truncation
+        if (entry.PlainText.Length > _config.MaxTextLength)
+        {
+            entry.PlainText = entry.PlainText[.._config.MaxTextLength];
+            entry.CharCount = entry.PlainText.Length;
+        }
+
         if (entry.CharCount > 0 && entry.CharCount < _config.MinContentLength)
             return;
 
@@ -208,6 +228,24 @@ public partial class App : Application
         if (_quickPopup != null)
         {
             await _quickPopup.ShowAndLoadAsync();
+        }
+    }
+
+    internal void OpenSettings()
+    {
+        var oldHotkey = _config.Hotkey;
+        var settings = new SettingsWindow(_config);
+        settings.Owner = _mainWindow;
+        settings.ShowDialog();
+
+        if (settings.Saved)
+        {
+            // Re-apply hotkey if changed
+            if (_config.Hotkey != oldHotkey && _hotkeyService != null)
+            {
+                _hotkeyService.Unregister();
+                _hotkeyService.Register(_config.Hotkey);
+            }
         }
     }
 
