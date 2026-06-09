@@ -132,6 +132,10 @@ public partial class App : Application
     {
         if (_databaseService == null) return;
 
+        // Skip entries triggered by our own app (Copy button, Ctrl+C in preview, etc.)
+        if (IsSelfTriggered(entry.SourceApp))
+            return;
+
         if (entry.CharCount > 0 && entry.CharCount < _config.MinContentLength)
             return;
 
@@ -143,6 +147,7 @@ public partial class App : Application
             existing.LastAccessed = DateTime.UtcNow;
             await _databaseService.UpdateEntryAsync(existing);
             UpdateTrayInfo();
+            await (_mainWindow?.RefreshFeedAsync() ?? Task.CompletedTask);
             return;
         }
 
@@ -179,6 +184,7 @@ public partial class App : Application
 
         await _databaseService.InsertEntryAsync(entry);
         UpdateTrayInfo();
+        await (_mainWindow?.RefreshFeedAsync() ?? Task.CompletedTask);
     }
 
     private void UpdateTrayInfo()
@@ -221,6 +227,7 @@ public partial class App : Application
     {
         try
         {
+            Services.ClipboardMonitor.SuppressNextCapture = true;
             Clipboard.SetText(entry.PlainText);
 
             // Delay to allow focus to return to previous window, then simulate Ctrl+V
@@ -273,5 +280,13 @@ public partial class App : Application
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         var hash = SHA256.HashData(stream);
         return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static bool IsSelfTriggered(string sourceApp)
+    {
+        if (string.IsNullOrEmpty(sourceApp)) return false;
+
+        var selfName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+        return string.Equals(sourceApp, selfName, StringComparison.OrdinalIgnoreCase);
     }
 }

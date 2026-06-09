@@ -278,6 +278,26 @@
                                VerticalAlignment="Top"
                                FontSize="12"
                                Foreground="#202734"/>
+
+                    <Button Content="&#xE8C8;"
+                            Grid.Column="2" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            Width="22" Height="22"
+                            Foreground="#A0A7B4" Background="Transparent"
+                            BorderThickness="0" Cursor="Hand"
+                            ToolTip="Copy"
+                            Click="CardCopy_Click" Tag="{Binding}"/>
+                    <Button Content="&#xE718;"
+                            Grid.Column="2" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            Margin="0,0,24,0"
+                            FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            Width="22" Height="22"
+                            Foreground="#A0A7B4" Background="Transparent"
+                            BorderThickness="0" Cursor="Hand"
+                            ToolTip="Pin"
+                            Click="CardPin_Click" Tag="{Binding}"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -333,6 +353,25 @@
                                VerticalAlignment="Top"
                                FontSize="12"
                                Foreground="#202734"/>
+                    <Button Content="&#xE8C8;"
+                            Grid.Column="2" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            Width="22" Height="22"
+                            Foreground="#A0A7B4" Background="Transparent"
+                            BorderThickness="0" Cursor="Hand"
+                            ToolTip="Copy"
+                            Click="CardCopy_Click" Tag="{Binding}"/>
+                    <Button Content="&#xE718;"
+                            Grid.Column="2" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            Margin="0,0,24,0"
+                            FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            Width="22" Height="22"
+                            Foreground="#A0A7B4" Background="Transparent"
+                            BorderThickness="0" Cursor="Hand"
+                            ToolTip="Pin"
+                            Click="CardPin_Click" Tag="{Binding}"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -375,6 +414,25 @@
                                VerticalAlignment="Top"
                                FontSize="12"
                                Foreground="#202734"/>
+                    <Button Content="&#xE8C8;"
+                            Grid.Column="2" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            Width="22" Height="22"
+                            Foreground="#A0A7B4" Background="Transparent"
+                            BorderThickness="0" Cursor="Hand"
+                            ToolTip="Copy"
+                            Click="CardCopy_Click" Tag="{Binding}"/>
+                    <Button Content="&#xE718;"
+                            Grid.Column="2" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            Margin="0,0,24,0"
+                            FontFamily="Segoe MDL2 Assets" FontSize="11"
+                            Width="22" Height="22"
+                            Foreground="#A0A7B4" Background="Transparent"
+                            BorderThickness="0" Cursor="Hand"
+                            ToolTip="Pin"
+                            Click="CardPin_Click" Tag="{Binding}"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -621,23 +679,21 @@
 
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="26,26,26,26">
                             <Grid>
-                                <TextBlock x:Name="PreviewText"
-                                           Text="Select a clipboard item to preview its content here."
-                                           FontFamily="Consolas"
-                                           FontSize="15"
-                                           LineHeight="24"
-                                           Foreground="#202734"
-                                           TextWrapping="Wrap"
-                                           Cursor="Hand"
-                                           MouseDown="PreviewText_MouseDown"
-                                           Visibility="Visible"/>
+                                <TextBox x:Name="PreviewText"
+                                         Text="Select a clipboard item to preview its content here."
+                                         FontFamily="Consolas"
+                                         FontSize="15"
+                                         Foreground="#202734"
+                                         TextWrapping="Wrap"
+                                         IsReadOnly="True"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Visibility="Visible"/>
                                 <Image x:Name="PreviewImage"
                                        Stretch="Uniform"
                                        StretchDirection="DownOnly"
                                        HorizontalAlignment="Stretch"
                                        VerticalAlignment="Stretch"
-                                       Cursor="Hand"
-                                       MouseDown="PreviewImage_MouseDown"
                                        Visibility="Collapsed"/>
                             </Grid>
                         </ScrollViewer>

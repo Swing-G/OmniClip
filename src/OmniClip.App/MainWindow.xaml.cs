@@ -1,7 +1,9 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using OmniClip.App.Services;
 using OmniClip.Core.Interfaces;
 using OmniClip.Core.Models;
 using Clipboard = System.Windows.Clipboard;
@@ -27,11 +29,30 @@ public partial class MainWindow : Window
         // Wire up style and template selectors for time-grouped feed
         EntryListMain.ItemContainerStyleSelector = new FeedItemStyleSelector();
         EntryListMain.ItemTemplateSelector = new FeedTemplateSelector();
+
+        // Use preview handler (tunneling phase) to intercept Copy BEFORE TextBox handles it
+        CommandManager.AddPreviewExecutedHandler(this, OnWindowCopy);
+    }
+
+    private void OnWindowCopy(object sender, ExecutedRoutedEventArgs e)
+    {
+        ClipboardMonitor.SuppressNextCapture = true;
+        // Let the default copy handler run — our flag will prevent re-capture
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         await LoadEntriesAsync();
+    }
+
+    public async Task RefreshFeedAsync()
+    {
+        await Dispatcher.InvokeAsync(async () =>
+        {
+            // Only refresh if no search/filter is active
+            if (string.IsNullOrEmpty(MainSearchBox.Text))
+                await LoadEntriesAsync();
+        });
     }
 
     // === Sidebar ===
@@ -205,7 +226,28 @@ public partial class MainWindow : Window
     private void CopyEntry_Click(object sender, RoutedEventArgs e)
     {
         if (EntryListMain.SelectedItem is ClipboardEntry entry)
+        {
+            ClipboardMonitor.SuppressNextCapture = true;
+            CopyEntryToClipboard(entry);
+        }
+    }
+
+    private static void CopyEntryToClipboard(ClipboardEntry entry)
+    {
+        // For file/image entries with a valid file path, copy the actual file
+        if ((entry.ContentType == ContentType.File || entry.ContentType == ContentType.Image)
+            && !string.IsNullOrEmpty(entry.FilePath) && File.Exists(entry.FilePath))
+        {
+            var fileList = new System.Collections.Specialized.StringCollection
+            {
+                entry.FilePath
+            };
+            Clipboard.SetFileDropList(fileList);
+        }
+        else
+        {
             Clipboard.SetText(entry.PlainText);
+        }
     }
 
     private async void DeleteEntry_Click(object sender, RoutedEventArgs e)
@@ -254,30 +296,25 @@ public partial class MainWindow : Window
             : WindowState.Maximized;
     }
 
-    private void PreviewImage_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        OpenSelectedFile();
-    }
+    // === Card Buttons ===
 
-    private void PreviewText_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void CardCopy_Click(object sender, RoutedEventArgs e)
     {
-        OpenSelectedFile();
-    }
-
-    private void OpenSelectedFile()
-    {
-        if (EntryListMain.SelectedItem is ClipboardEntry entry &&
-            !string.IsNullOrEmpty(entry.FilePath) && File.Exists(entry.FilePath))
+        if (sender is System.Windows.Controls.Button btn && btn.Tag is ClipboardEntry entry)
         {
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = entry.FilePath,
-                    UseShellExecute = true
-                });
-            }
-            catch { }
+            ClipboardMonitor.SuppressNextCapture = true;
+            CopyEntryToClipboard(entry);
+        }
+    }
+
+    private async void CardPin_Click(object sender, RoutedEventArgs e)
+    {
+        if (_dbService == null) return;
+        if (sender is System.Windows.Controls.Button btn && btn.Tag is ClipboardEntry entry)
+        {
+            entry.IsPinned = !entry.IsPinned;
+            await _dbService.UpdateEntryAsync(entry);
+            await LoadEntriesAsync();
         }
     }
 

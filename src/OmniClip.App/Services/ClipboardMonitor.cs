@@ -22,6 +22,12 @@ public class ClipboardMonitor : IClipboardMonitor
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
 
+    /// <summary>
+    /// Set to true before copying from within OmniClip to prevent re-capture.
+    /// Automatically cleared after 200ms.
+    /// </summary>
+    public static bool SuppressNextCapture { get; set; }
+
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
 
@@ -102,6 +108,13 @@ public class ClipboardMonitor : IClipboardMonitor
     private void OnClipboardChanged()
     {
         if (!_isMonitoring) return;
+
+        // Skip re-capture of content copied from within our own app
+        if (SuppressNextCapture)
+        {
+            SuppressNextCapture = false;
+            return;
+        }
 
         // Retry up to 5 times with 20ms delay — clipboard may be locked by source app
         for (int retry = 0; retry < 5; retry++)
