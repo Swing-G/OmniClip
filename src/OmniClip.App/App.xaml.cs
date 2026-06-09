@@ -143,48 +143,15 @@ public partial class App : Application
                 string? savedPath = null;
 
                 // Already have a file path (e.g. file copy from Explorer)?
-                // Copy it to our storage so it persists even if original is deleted
                 if (!string.IsNullOrEmpty(entry.FilePath) && File.Exists(entry.FilePath))
                 {
                     var ext = System.IO.Path.GetExtension(entry.FilePath);
                     savedPath = await _storageService.SaveFileAsync(entry.FilePath, ext);
                 }
-
-                // Otherwise extract bitmap data from clipboard
-                if (savedPath == null)
+                // Otherwise use image bytes pre-extracted by the monitor
+                else if (entry.ImageBytes != null && entry.ImageBytes.Length > 0)
                 {
-                    var dataObj = Clipboard.GetDataObject();
-                    if (dataObj != null)
-                    {
-                        BitmapSource? bitmap = null;
-
-                        if (dataObj.GetDataPresent(System.Windows.DataFormats.Bitmap))
-                            bitmap = dataObj.GetData(System.Windows.DataFormats.Bitmap) as BitmapSource;
-
-                        if (bitmap == null && dataObj.GetDataPresent("PNG"))
-                        {
-                            var pngStream = dataObj.GetData("PNG") as MemoryStream;
-                            if (pngStream == null && dataObj.GetData("PNG") is Stream rawStream)
-                            {
-                                pngStream = new MemoryStream();
-                                rawStream.CopyTo(pngStream);
-                                pngStream.Position = 0;
-                                rawStream.Dispose();
-                            }
-                            if (pngStream != null)
-                            {
-                                var decoder = new PngBitmapDecoder(pngStream,
-                                    BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-                                bitmap = decoder.Frames[0];
-                            }
-                        }
-
-                        if (bitmap == null && dataObj.GetDataPresent(System.Windows.DataFormats.Dib))
-                            bitmap = dataObj.GetData(System.Windows.DataFormats.Dib) as BitmapSource;
-
-                        if (bitmap != null)
-                            savedPath = await SaveClipboardImageAsync(bitmap);
-                    }
+                    savedPath = await SaveImageBytesAsync(entry.ImageBytes);
                 }
 
                 if (savedPath != null)
@@ -289,7 +256,7 @@ public partial class App : Application
         base.OnExit(e);
     }
 
-    private async Task<string> SaveClipboardImageAsync(BitmapSource bitmap)
+    private async Task<string> SaveImageBytesAsync(byte[] imageBytes)
     {
         var filesDir = System.IO.Path.Combine(_config.StoragePath, "files");
         var monthDir = System.IO.Path.Combine(filesDir, DateTime.UtcNow.ToString("yyyy-MM"));
@@ -298,13 +265,7 @@ public partial class App : Application
         var fileName = $"{Guid.NewGuid()}.png";
         var filePath = System.IO.Path.Combine(monthDir, fileName);
 
-        await Task.Run(() =>
-        {
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bitmap));
-            using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-            encoder.Save(stream);
-        });
+        await File.WriteAllBytesAsync(filePath, imageBytes);
 
         return filePath;
     }

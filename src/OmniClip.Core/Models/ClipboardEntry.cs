@@ -20,4 +20,11 @@ public class ClipboardEntry
     public double ImportanceScore { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastAccessed { get; set; }
+
+    /// <summary>
+    /// Raw image bytes captured from clipboard. Not persisted to DB —
+    /// used only to transport bitmap data from monitor to storage handler.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public byte[]? ImageBytes { get; set; }
 }

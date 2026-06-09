@@ -166,6 +166,9 @@ public class ClipboardMonitor : IClipboardMonitor
             entry.ContentType = ContentType.Image;
             entry.PlainText = "[Image]";
             entry.ContentHash = ComputeHash($"image_{DateTime.UtcNow.Ticks}");
+
+            // Extract bitmap immediately while clipboard data is still alive
+            entry.ImageBytes = ExtractImageBytes(dataObj);
         }
         // 3) Text
         else if (dataObj.GetDataPresent(System.Windows.DataFormats.Text))
@@ -234,6 +237,63 @@ public class ClipboardMonitor : IClipboardMonitor
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(content));
         return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Extract image data from clipboard immediately, while the data is still valid.
+    /// Tries multiple formats: WPF Bitmap, PNG stream, DIB.
+    /// </summary>
+    private static byte[]? ExtractImageBytes(System.Windows.IDataObject dataObj)
+    {
+        try
+        {
+            // Try WPF Bitmap
+            if (dataObj.GetDataPresent(System.Windows.DataFormats.Bitmap))
+            {
+                var bitmap = dataObj.GetData(System.Windows.DataFormats.Bitmap) as System.Windows.Media.Imaging.BitmapSource;
+                if (bitmap != null)
+                    return EncodeToPng(bitmap);
+            }
+
+            // Try PNG stream
+            if (dataObj.GetDataPresent("PNG"))
+            {
+                var pngData = dataObj.GetData("PNG") as byte[];
+                if (pngData != null)
+                    return pngData;
+
+                var pngStream = dataObj.GetData("PNG") as System.IO.Stream;
+                if (pngStream != null)
+                {
+                    using var ms = new System.IO.MemoryStream();
+                    pngStream.CopyTo(ms);
+                    return ms.ToArray();
+                }
+            }
+
+            // Try DIB
+            if (dataObj.GetDataPresent(System.Windows.DataFormats.Dib))
+            {
+                var bitmap = dataObj.GetData(System.Windows.DataFormats.Dib) as System.Windows.Media.Imaging.BitmapSource;
+                if (bitmap != null)
+                    return EncodeToPng(bitmap);
+            }
+        }
+        catch
+        {
+            // Extraction failed
+        }
+
+        return null;
+    }
+
+    private static byte[] EncodeToPng(System.Windows.Media.Imaging.BitmapSource bitmap)
+    {
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var ms = new System.IO.MemoryStream();
+        encoder.Save(ms);
+        return ms.ToArray();
     }
 
     public void Dispose()
