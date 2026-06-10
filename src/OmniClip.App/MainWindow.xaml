@@ -51,7 +51,7 @@
         <SolidColorBrush x:Key="OnSecondaryContainerBrush" Color="#5F6161"/>
 
         <DropShadowEffect x:Key="PreviewShadow" BlurRadius="60" ShadowDepth="16" Opacity="0.12" Color="#000000"/>
-        <DropShadowEffect x:Key="CardHoverShadow" BlurRadius="12" ShadowDepth="4" Opacity="0.06" Color="#000000"/>
+        <DropShadowEffect x:Key="CardHoverShadow" BlurRadius="16" ShadowDepth="4" Opacity="0.10" Color="#000000"/>
 
         <Style x:Key="IconText" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
@@ -193,7 +193,7 @@
                         <Border x:Name="CardBorder"
                                 Background="#FCF9F8"
                                 BorderBrush="#E7E9EE"
-                                BorderThickness="1"
+                                BorderThickness="1.5"
                                 CornerRadius="8"
                                 Padding="0">
                             <ContentPresenter/>
@@ -201,6 +201,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="CardBorder" Property="Background" Value="White"/>
+                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="#005FAA"/>
                                 <Setter TargetName="CardBorder" Property="Effect" Value="{StaticResource CardHoverShadow}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
@@ -555,8 +556,26 @@
                 </Border>
 
                 <Border Grid.Row="3" Margin="20,0,20,20" BorderBrush="#E5E2E1" BorderThickness="0,1,0,0" Padding="0,14,0,0">
-                    <Button Background="Transparent" BorderThickness="0" Foreground="#202734" Cursor="Hand" HorizontalContentAlignment="Left" Click="Settings_Click">
-                        <StackPanel Orientation="Horizontal">
+                    <Button x:Name="SettingsBtn"
+                            Background="Transparent" BorderThickness="0" Foreground="#202734"
+                            Cursor="Hand" HorizontalContentAlignment="Left"
+                            Click="Settings_Click"
+                            MouseEnter="SettingsBtn_MouseEnter"
+                            MouseLeave="SettingsBtn_MouseLeave">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}"
+                                        BorderThickness="0" CornerRadius="7" Height="44">
+                                    <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                      Margin="20,0"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel Orientation="Horizontal" x:Name="SettingsPanel"
+                                    RenderTransformOrigin="0,0.5">
+                            <StackPanel.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            </StackPanel.RenderTransform>
                             <TextBlock Style="{StaticResource IconText}" Text="&#xE713;" Width="24" FontSize="21"/>
                             <TextBlock Text="Settings" FontSize="15" Margin="16,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -582,14 +601,23 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#7A808A" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox Grid.Column="1" x:Name="MainSearchBox"
-                                         Background="Transparent"
-                                         BorderThickness="0"
-                                         FontSize="14"
-                                         Foreground="#1B1B1B"
-                                         VerticalContentAlignment="Center"
-                                         CaretBrush="#005FAA"
-                                         TextChanged="MainSearchBox_TextChanged"/>
+                                <Grid Grid.Column="1">
+                                    <TextBox x:Name="MainSearchBox"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             FontSize="14"
+                                             Foreground="#1B1B1B"
+                                             VerticalContentAlignment="Center"
+                                             CaretBrush="#005FAA"
+                                             TextChanged="MainSearchBox_TextChanged"/>
+                                    <TextBlock Text="Search clipboard"
+                                               FontSize="14" Foreground="#A0A7B4"
+                                               VerticalAlignment="Center"
+                                               IsHitTestVisible="False"
+                                               Margin="1,0,0,0"
+                                               Visibility="Visible"
+                                               x:Name="SearchPlaceholder"/>
+                                </Grid>
                             </Grid>
                         </Border>
 
@@ -657,13 +685,20 @@
                     </StackPanel>
                 </Grid>
 
-                <Border Grid.Row="1"
+                <Border x:Name="PreviewCard"
+                        Grid.Row="1"
                         Margin="32,0,32,32"
                         Background="#FDFCFB"
                         CornerRadius="10"
                         BorderBrush="#E5E2E1"
                         BorderThickness="1"
-                        Effect="{StaticResource PreviewShadow}">
+                        Effect="{StaticResource PreviewShadow}"
+                        RenderTransformOrigin="0.5,0.5"
+                        MouseEnter="PreviewCard_MouseEnter"
+                        MouseLeave="PreviewCard_MouseLeave">
+                    <Border.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                    </Border.RenderTransform>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="44"/>

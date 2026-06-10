@@ -1,6 +1,7 @@
 <Window x:Class="OmniClip.App.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="Settings"
         Width="560" Height="620"
         MinWidth="480" MinHeight="560"
@@ -8,8 +9,15 @@
         Background="#FCF9F8"
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterOwner"
-        WindowStyle="ToolWindow"
+        WindowStyle="None"
+        AllowsTransparency="True"
         ShowInTaskbar="False">
+
+    <WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="0" CornerRadius="8"
+                            GlassFrameThickness="0" ResizeBorderThickness="4"
+                            UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <SolidColorBrush x:Key="SurfaceBrush" Color="#F6F3F2"/>
@@ -108,17 +116,37 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="40,32,40,28">
+    <Border BorderBrush="#C0C7D4" BorderThickness="1" CornerRadius="8" Background="#FCF9F8" ClipToBounds="True">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="32"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Preferences" FontSize="22" FontWeight="SemiBold"
-                   Foreground="#000000" Margin="0,0,0,8"/>
+        <!-- Title bar matching main window style -->
+        <Border Grid.Row="0" Background="#F6F3F2" BorderBrush="#E5E2E1" BorderThickness="0,0,0,1"
+                MouseDown="TitleBar_MouseDown">
+            <Grid>
+                <TextBlock Text="Settings" FontSize="12" FontWeight="SemiBold" Foreground="#404752"
+                           VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets"
+                        FontSize="10" Foreground="#404752"
+                        Width="46" Height="32" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                        HorizontalAlignment="Right" Click="CloseBtn_Click"/>
+            </Grid>
+        </Border>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+        <Grid Grid.Row="1" Margin="40,28,40,28">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Preferences" FontSize="22" FontWeight="SemiBold"
+                       Foreground="#000000" Margin="0,0,0,8"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" Margin="0,8,0,0">
             <StackPanel>
 
                 <!-- ── Storage ── -->
@@ -269,6 +297,8 @@
                 <Button Content="Save" Style="{StaticResource PrimaryBtn}"
                         Click="Save_Click"/>
             </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
+    </Border>
 </Window>

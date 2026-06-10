@@ -20,6 +20,17 @@ public partial class SettingsWindow : Window
         LoadConfig();
     }
 
+    private void TitleBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+            DragMove();
+    }
+
+    private void CloseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        Cancel_Click(sender, e);
+    }
+
     private void LoadConfig()
     {
         StoragePathInput.Text = _config.StoragePath;

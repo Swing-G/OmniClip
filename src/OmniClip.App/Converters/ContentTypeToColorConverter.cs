@@ -14,11 +14,11 @@ public class ContentTypeToColorConverter : IValueConverter
         var type = value?.ToString()?.ToLowerInvariant();
         return type switch
         {
-            "code" => new SolidColorBrush(Color.FromRgb(0x00, 0x5F, 0xAA)),   // action blue
-            "url" => new SolidColorBrush(Color.FromRgb(0x97, 0x47, 0x00)),    // tertiary brown
-            "image" => new SolidColorBrush(Color.FromRgb(0x5D, 0x5F, 0x5F)),  // neutral
-            "file" => new SolidColorBrush(Color.FromRgb(0x5D, 0x5F, 0x5F)),   // neutral
-            _ => new SolidColorBrush(Color.FromRgb(0x5D, 0x5F, 0x5F)),         // text
+            "code" => new SolidColorBrush(Color.FromRgb(0x00, 0x5F, 0xAA)),   // blue
+            "url" => new SolidColorBrush(Color.FromRgb(0x97, 0x47, 0x00)),    // amber/brown
+            "image" => new SolidColorBrush(Color.FromRgb(0x2E, 0x7D, 0x32)),  // green
+            "file" => new SolidColorBrush(Color.FromRgb(0x8E, 0x24, 0xAA)),   // purple
+            _ => new SolidColorBrush(Color.FromRgb(0x5D, 0x5F, 0x5F)),         // gray
         };
     }
 

@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using OmniClip.App.Services;
 using OmniClip.Core.Interfaces;
@@ -120,6 +121,8 @@ public partial class MainWindow : Window
 
     private async void MainSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        SearchPlaceholder.Visibility = string.IsNullOrEmpty(MainSearchBox.Text)
+            ? Visibility.Visible : Visibility.Collapsed;
         await LoadEntriesAsync(MainSearchBox.Text);
     }
 
@@ -294,6 +297,16 @@ public partial class MainWindow : Window
             : WindowState.Maximized;
     }
 
+    private void PreviewCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        PreviewCard.RenderTransform = new ScaleTransform(1.01, 1.01);
+    }
+
+    private void PreviewCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        PreviewCard.RenderTransform = new ScaleTransform(1, 1);
+    }
+
     // === Card Buttons ===
 
     private void CardCopy_Click(object sender, RoutedEventArgs e)
@@ -323,9 +336,21 @@ public partial class MainWindow : Window
         System.Windows.MessageBox.Show("AI Insights will be available in a future update.", "OmniClip");
     }
 
+    private void SettingsBtn_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        SettingsPanel.RenderTransform = new ScaleTransform(1.04, 1.04);
+        SettingsBtn.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xEA, 0xE7, 0xE7));
+    }
+
+    private void SettingsBtn_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        SettingsPanel.RenderTransform = new ScaleTransform(1, 1);
+        SettingsBtn.Background = System.Windows.Media.Brushes.Transparent;
+    }
+
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        // Get the App instance to access config
+        SettingsBtn_MouseLeave(sender, null!);
         var app = Application.Current as App;
         if (app == null) return;
         app.OpenSettings();
