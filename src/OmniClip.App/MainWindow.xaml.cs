@@ -404,7 +404,11 @@ public partial class MainWindow : Window
             await _dbService.UpdateEntryAsync(entry);
 
             // Update the clicked button's icon & tooltip immediately
-            btn.Content = entry.IsPinned ? "" : "";     // filled-pin vs outline-pin
+            btn.Content = entry.IsPinned ? "" : "";     // filled vs outline — same glyph for now
+            btn.Foreground = entry.IsPinned
+                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x00, 0x5F, 0xAA))
+                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xA0, 0xA7, 0xB4));
+            btn.ToolTip = entry.IsPinned ? "Unpin" : "Pin";
             btn.Foreground = entry.IsPinned
                 ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x00, 0x5F, 0xAA))
                 : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xA0, 0xA7, 0xB4));
