@@ -115,14 +115,27 @@ public partial class MainWindow : Window
     {
         var items = new List<object>();
         string? currentGroup = null;
+        bool pinnedHeaderAdded = false;
 
         foreach (var entry in entries)
         {
-            var group = GetTimeGroup(entry.CreatedAt);
-            if (group != currentGroup)
+            // Add "PINNED" header before first pinned entry
+            if (entry.IsPinned && !pinnedHeaderAdded)
             {
-                currentGroup = group;
-                items.Add(new SectionHeader { Label = group });
+                items.Add(new SectionHeader { Label = "PINNED" });
+                pinnedHeaderAdded = true;
+                currentGroup = null; // reset time groups after pinned section
+            }
+
+            // Skip time headers for pinned items
+            if (!entry.IsPinned)
+            {
+                var group = GetTimeGroup(entry.CreatedAt);
+                if (group != currentGroup)
+                {
+                    currentGroup = group;
+                    items.Add(new SectionHeader { Label = group });
+                }
             }
             items.Add(entry);
         }
@@ -391,7 +404,7 @@ public partial class MainWindow : Window
             await _dbService.UpdateEntryAsync(entry);
 
             // Update the clicked button's icon & tooltip immediately
-            btn.Content = entry.IsPinned ? "&#xE77A;" : "&#xE718;";     // pushed-pin vs outline-pin
+            btn.Content = entry.IsPinned ? "" : "";     // filled-pin vs outline-pin
             btn.Foreground = entry.IsPinned
                 ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x00, 0x5F, 0xAA))
                 : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xA0, 0xA7, 0xB4));
