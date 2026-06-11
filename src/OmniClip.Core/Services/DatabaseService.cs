@@ -115,7 +115,7 @@ public class DatabaseService : IDatabaseService
 
     public async Task<IReadOnlyList<ClipboardEntry>> GetRecentEntriesAsync(int limit = 100)
     {
-        var sql = "SELECT * FROM clipboard_entries ORDER BY is_pinned DESC, created_at DESC LIMIT @limit";
+        var sql = "SELECT * FROM clipboard_entries ORDER BY created_at DESC LIMIT @limit";
         using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         cmd.Parameters.AddWithValue("@limit", limit);
@@ -131,7 +131,7 @@ public class DatabaseService : IDatabaseService
                OR source_app LIKE @keyword
                OR source_window LIKE @keyword
                OR file_name LIKE @keyword
-            ORDER BY is_pinned DESC, created_at DESC
+            ORDER BY created_at DESC
             LIMIT @limit";
 
         using var cmd = _connection!.CreateCommand();
@@ -144,7 +144,7 @@ public class DatabaseService : IDatabaseService
 
     public async Task<IReadOnlyList<ClipboardEntry>> GetEntriesByTypeAsync(ContentType type, int limit = 50)
     {
-        var sql = "SELECT * FROM clipboard_entries WHERE content_type = @type ORDER BY is_pinned DESC, created_at DESC LIMIT @limit";
+        var sql = "SELECT * FROM clipboard_entries WHERE content_type = @type ORDER BY created_at DESC LIMIT @limit";
         using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         cmd.Parameters.AddWithValue("@type", type.ToString().ToLowerInvariant());
