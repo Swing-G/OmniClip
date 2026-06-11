@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using OmniClip.App.Services;
 using OmniClip.Core.Interfaces;
 using OmniClip.Core.Models;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -115,6 +116,15 @@ public partial class QuickPopup : Window
             if (EntryList.SelectedIndex < EntryList.Items.Count - 1)
                 EntryList.SelectedIndex++;
             EntryList.ScrollIntoView(EntryList.SelectedItem);
+        }
+    }
+
+    private void CardCopy_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button btn && btn.Tag is ClipboardEntry entry)
+        {
+            ClipboardMonitor.SuppressNextCapture = true;
+            System.Windows.Clipboard.SetText(entry.PlainText);
         }
     }
 }

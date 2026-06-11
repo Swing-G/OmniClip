@@ -1,5 +1,10 @@
+using System.IO;
+using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Forms;
+using Microsoft.Win32;
+using OmniClip.Core.Interfaces;
 using OmniClip.Core.Models;
 using Button = System.Windows.Controls.Button;
 
@@ -9,13 +14,15 @@ public partial class SettingsWindow : Window
 {
     private readonly AppConfig _config;
     private readonly AppConfig _original;
+    private readonly IDatabaseService? _dbService;
 
     public bool Saved { get; private set; }
 
-    public SettingsWindow(AppConfig config)
+    public SettingsWindow(AppConfig config, IDatabaseService? dbService = null)
     {
         InitializeComponent();
         _config = config;
+        _dbService = dbService;
         _original = CloneConfig(config);
         LoadConfig();
     }
@@ -160,6 +167,72 @@ public partial class SettingsWindow : Window
 
     private static long ParseLong(string text, long fallback)
         => long.TryParse(text?.Trim(), out var v) && v >= 0 ? v : fallback;
+
+    private async void Export_Click(object sender, RoutedEventArgs e)
+    {
+        if (_dbService == null) return;
+        if (sender is not System.Windows.Controls.Button btn) return;
+
+        var fmt = btn.Tag?.ToString() ?? "md";
+        var (ext, filter) = fmt switch
+        {
+            "json" => (".json", "JSON (*.json)|*.json"),
+            "txt" => (".txt", "Plain Text (*.txt)|*.txt"),
+            _ => (".md", "Markdown (*.md)|*.md")
+        };
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Filter = filter,
+            DefaultExt = ext,
+            FileName = $"omniclip_export_{DateTime.Now:yyyyMMdd}"
+        };
+
+        if (dialog.ShowDialog() != true) return;
+
+        var entries = await _dbService.GetRecentEntriesAsync(500);
+        var content = fmt switch
+        {
+            "json" => JsonSerializer.Serialize(entries, new JsonSerializerOptions { WriteIndented = true }),
+            "txt" => ExportAsText(entries),
+            _ => ExportAsMarkdown(entries)
+        };
+
+        await File.WriteAllTextAsync(dialog.FileName, content);
+    }
+
+    private static string ExportAsMarkdown(IReadOnlyList<ClipboardEntry> entries)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("# OmniClip Export");
+        sb.AppendLine($"Exported: {DateTime.Now:yyyy-MM-dd HH:mm}");
+        sb.AppendLine();
+
+        string? currentDay = null;
+        foreach (var e in entries)
+        {
+            var day = e.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd");
+            if (day != currentDay) { currentDay = day; sb.AppendLine($"## {day}\n"); }
+            sb.AppendLine($"- **{e.ContentType}** · {e.SourceApp} · {e.CreatedAt.ToLocalTime():HH:mm}");
+            var text = e.PlainText.Length > 200 ? e.PlainText[..200] + "..." : e.PlainText;
+            sb.AppendLine($"  {text.Replace("\n", "\n  ")}");
+            if (!string.IsNullOrEmpty(e.FilePath)) sb.AppendLine($"  📎 `{e.FilePath}`");
+            sb.AppendLine();
+        }
+        return sb.ToString();
+    }
+
+    private static string ExportAsText(IReadOnlyList<ClipboardEntry> entries)
+    {
+        var sb = new StringBuilder();
+        foreach (var e in entries)
+        {
+            sb.AppendLine($"=== {e.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm} | {e.ContentType} | {e.SourceApp} ===");
+            sb.AppendLine(e.PlainText);
+            sb.AppendLine();
+        }
+        return sb.ToString();
+    }
 
     private static AppConfig CloneConfig(AppConfig src) => new()
     {

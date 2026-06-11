@@ -331,6 +331,22 @@
                     </Grid>
                 </StackPanel>
 
+                <!-- ── Data ── -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Data"/>
+                <StackPanel Margin="0,0,0,6">
+                    <WrapPanel Margin="0,0,0,4">
+                        <Button Content="&#xE8A7; Export Markdown" Style="{StaticResource SecondaryBtn}"
+                                Height="32" Padding="12,0" Margin="0,0,8,0" FontSize="12"
+                                Click="Export_Click" Tag="md"/>
+                        <Button Content="&#xE8A7; Export JSON" Style="{StaticResource SecondaryBtn}"
+                                Height="32" Padding="12,0" Margin="0,0,8,0" FontSize="12"
+                                Click="Export_Click" Tag="json"/>
+                        <Button Content="&#xE8A7; Export Text" Style="{StaticResource SecondaryBtn}"
+                                Height="32" Padding="12,0" FontSize="12"
+                                Click="Export_Click" Tag="txt"/>
+                    </WrapPanel>
+                </StackPanel>
+
             </StackPanel>
         </ScrollViewer>
 

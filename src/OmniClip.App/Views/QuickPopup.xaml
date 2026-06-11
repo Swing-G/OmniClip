@@ -96,22 +96,33 @@
                      Margin="0">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel>
-                            <!-- Source + timestamp -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock Text="{Binding SourceApp}"
-                                           FontSize="12" FontWeight="SemiBold"
-                                           Foreground="#1B1B1B"/>
-                                <TextBlock Text=" · " FontSize="12" Foreground="#C0C7D4"/>
-                                <TextBlock Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
-                                           FontSize="11" Foreground="#717783"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="{Binding SourceApp}"
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="#1B1B1B"/>
+                                    <TextBlock Text=" · " FontSize="12" Foreground="#C0C7D4"/>
+                                    <TextBlock Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
+                                               FontSize="11" Foreground="#717783"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding PlainText}"
+                                           FontSize="13" Foreground="#404752"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxHeight="36" TextWrapping="NoWrap"/>
                             </StackPanel>
-                            <!-- Preview -->
-                            <TextBlock Text="{Binding PlainText}"
-                                       FontSize="13" Foreground="#404752"
-                                       TextTrimming="CharacterEllipsis"
-                                       MaxHeight="36" TextWrapping="NoWrap"/>
-                        </StackPanel>
+                            <Button Grid.Column="1" Content="&#xE8C8;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="12" Width="24" Height="24"
+                                    Foreground="#A0A7B4" Background="Transparent"
+                                    BorderThickness="0" Cursor="Hand"
+                                    VerticalAlignment="Top" Margin="8,0,0,0"
+                                    Click="CardCopy_Click" Tag="{Binding}"/>
+                        </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

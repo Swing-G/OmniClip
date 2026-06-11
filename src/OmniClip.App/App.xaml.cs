@@ -88,7 +88,13 @@ public partial class App : Application
     private void SetupFloatingButton()
     {
         _floatingBtn = new FloatingButton();
-        _floatingBtn.OpenMainWindow += () => Dispatcher.Invoke(ShowMainWindow);
+        _floatingBtn.ToggleMainWindow += () => Dispatcher.Invoke(() =>
+        {
+            if (_mainWindow != null && _mainWindow.IsVisible)
+                _mainWindow.Hide();
+            else
+                ShowMainWindow();
+        });
         _floatingBtn.Dismiss += () =>
         {
             _floatingBtn?.Close();
@@ -260,7 +266,7 @@ public partial class App : Application
     internal void OpenSettings()
     {
         var oldHotkey = _config.Hotkey;
-        var settings = new SettingsWindow(_config);
+        var settings = new SettingsWindow(_config, _databaseService);
         settings.Owner = _mainWindow;
         settings.ShowDialog();
 

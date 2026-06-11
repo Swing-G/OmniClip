@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -5,8 +6,11 @@ namespace OmniClip.App.Views;
 
 public partial class FloatingButton : Window
 {
-    public event Action? OpenMainWindow;
+    public event Action? ToggleMainWindow;
     public event Action? Dismiss;
+
+    private bool _isDragging;
+    private System.Windows.Point _dragStart;
 
     public FloatingButton()
     {
@@ -18,19 +22,39 @@ public partial class FloatingButton : Window
         };
     }
 
-    private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+    private void Window_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (e.ChangedButton == MouseButton.Left)
-            DragMove();
+        if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+        {
+            _dragStart = e.GetPosition(this);
+            _isDragging = false;
+        }
     }
 
-    private void Button_MouseDown(object sender, MouseButtonEventArgs e)
+    protected override void OnMouseMove(System.Windows.Input.MouseEventArgs e)
     {
-        if (e.ClickCount == 1)
-            OpenMainWindow?.Invoke();
+        base.OnMouseMove(e);
+        if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+        {
+            var pos = e.GetPosition(this);
+            if (Math.Abs(pos.X - _dragStart.X) > 3 || Math.Abs(pos.Y - _dragStart.Y) > 3)
+                _isDragging = true;
+
+            if (_isDragging)
+                DragMove();
+        }
     }
 
-    private void CloseBtn_MouseDown(object sender, MouseButtonEventArgs e)
+    protected override void OnMouseUp(System.Windows.Input.MouseButtonEventArgs e)
+    {
+        base.OnMouseUp(e);
+        if (!_isDragging)
+            ToggleMainWindow?.Invoke();
+    }
+
+    private void Button_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e) { }
+
+    private void CloseBtn_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         e.Handled = true;
         Dismiss?.Invoke();

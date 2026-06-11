@@ -500,7 +500,6 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,28,20,36">
@@ -566,13 +565,6 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="✦" FontSize="18" Foreground="#5F6161" Margin="0,0,8,0"/>
                         <TextBlock Text="AI Insights" FontSize="13" FontWeight="SemiBold" Foreground="#5F6161"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="4" Height="40" Margin="20,0,20,16" Background="#E9E9EA" CornerRadius="7" Cursor="Hand" MouseDown="Export_Click">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="&#xE8A7;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#5F6161" Margin="0,0,8,0"/>
-                        <TextBlock Text="Export" FontSize="12" FontWeight="SemiBold" Foreground="#5F6161"/>
                     </StackPanel>
                 </Border>
 
