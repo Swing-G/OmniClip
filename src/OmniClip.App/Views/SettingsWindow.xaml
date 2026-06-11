@@ -206,9 +206,11 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Style="{StaticResource FieldLabel}" Text="Retention" Grid.Column="0"/>
-                        <TextBox x:Name="RetentionInput" Style="{StaticResource NumInput}" Grid.Column="1"/>
+                        <TextBox x:Name="RetentionInput" Style="{StaticResource NumInput}" Grid.Column="1" Width="72"/>
                         <TextBlock Text=" days" FontSize="13" Foreground="#5D5F5F" VerticalAlignment="Center"
                                    Grid.Column="2" Margin="6,0,0,0"/>
+                        <TextBlock Text="0 = keep forever" FontSize="11" Foreground="#A0A7B4"
+                                   VerticalAlignment="Center" Margin="8,0,0,0" Grid.Column="2"/>
                     </Grid>
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
@@ -217,9 +219,11 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Style="{StaticResource FieldLabel}" Text="Max storage" Grid.Column="0"/>
-                        <TextBox x:Name="MaxStorageInput" Style="{StaticResource NumInput}" Grid.Column="1"/>
+                        <TextBox x:Name="MaxStorageInput" Style="{StaticResource NumInput}" Grid.Column="1" Width="72"/>
                         <TextBlock Text=" MB" FontSize="13" Foreground="#5D5F5F" VerticalAlignment="Center"
                                    Grid.Column="2" Margin="6,0,0,0"/>
+                        <TextBlock Text="0 = no limit" FontSize="11" Foreground="#A0A7B4"
+                                   VerticalAlignment="Center" Margin="8,0,0,0" Grid.Column="2"/>
                     </Grid>
                 </StackPanel>
 

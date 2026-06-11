@@ -65,14 +65,14 @@ public partial class MainWindow : Window
 
         var tag = item.Tag?.ToString() ?? "all";
         _activeTypeFilter = tag == "all" ? null : tag;
-        _unpinnedOnly = false;
+        _pinnedOnly = false;
         await LoadEntriesAsync();
     }
 
     // === Feed ===
 
     private string? _activeTypeFilter = null;
-    private bool _unpinnedOnly = false;
+    private bool _pinnedOnly = false;
 
     private async Task LoadEntriesAsync(string? keyword = null)
     {
@@ -101,9 +101,9 @@ public partial class MainWindow : Window
             entries = await _dbService.GetRecentEntriesAsync(200);
         }
 
-        // Filter unpinned-only if chip is active
-        if (_unpinnedOnly)
-            entries = entries.Where(e => !e.IsPinned).ToList().AsReadOnly();
+        // Filter pinned-only if chip is active (skip when searching)
+        if (_pinnedOnly && string.IsNullOrWhiteSpace(keyword))
+            entries = entries.Where(e => e.IsPinned).ToList().AsReadOnly();
 
         EntryListMain.ItemsSource = BuildGroupedList(entries);
     }
@@ -152,17 +152,17 @@ public partial class MainWindow : Window
     {
         if (sender is System.Windows.Controls.Button btn)
         {
-            _unpinnedOnly = btn == UnpinnedChip;
+            _pinnedOnly = btn == UnpinnedChip;
             // Toggle chip backgrounds
             var activeBg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF0, 0xED, 0xED));
             var inactiveBg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFC, 0xF9, 0xF8));
             var activeFg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1B, 0x1B, 0x1B));
             var inactiveFg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x40, 0x47, 0x52));
 
-            AllChip.Background = _unpinnedOnly ? inactiveBg : activeBg;
-            AllChip.Foreground = _unpinnedOnly ? inactiveFg : activeFg;
-            UnpinnedChip.Background = _unpinnedOnly ? activeBg : inactiveBg;
-            UnpinnedChip.Foreground = _unpinnedOnly ? activeFg : inactiveFg;
+            AllChip.Background = _pinnedOnly ? inactiveBg : activeBg;
+            AllChip.Foreground = _pinnedOnly ? inactiveFg : activeFg;
+            UnpinnedChip.Background = _pinnedOnly ? activeBg : inactiveBg;
+            UnpinnedChip.Foreground = _pinnedOnly ? activeFg : inactiveFg;
         }
         await LoadEntriesAsync();
     }
@@ -389,6 +389,14 @@ public partial class MainWindow : Window
         {
             entry.IsPinned = !entry.IsPinned;
             await _dbService.UpdateEntryAsync(entry);
+
+            // Update the clicked button's icon & tooltip immediately
+            btn.Content = entry.IsPinned ? "&#xE77A;" : "&#xE718;";     // pushed-pin vs outline-pin
+            btn.Foreground = entry.IsPinned
+                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x00, 0x5F, 0xAA))
+                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xA0, 0xA7, 0xB4));
+            btn.ToolTip = entry.IsPinned ? "Unpin" : "Pin";
+
             await LoadEntriesAsync();
         }
     }
