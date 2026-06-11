@@ -101,9 +101,9 @@ public partial class MainWindow : Window
             entries = await _dbService.GetRecentEntriesAsync(200);
         }
 
-        // Pinned chip: only pinned.  All Types: only unpinned.  Search: show all.
-        if (string.IsNullOrWhiteSpace(keyword))
-            entries = entries.Where(e => e.IsPinned == _pinnedOnly).ToList().AsReadOnly();
+        // Pinned chip: show only pinned items.  All Types: show everything.
+        if (_pinnedOnly && string.IsNullOrWhiteSpace(keyword))
+            entries = entries.Where(e => e.IsPinned).ToList().AsReadOnly();
 
         EntryListMain.ItemsSource = BuildGroupedList(entries);
     }
