@@ -115,27 +115,14 @@ public partial class MainWindow : Window
     {
         var items = new List<object>();
         string? currentGroup = null;
-        bool pinnedHeaderAdded = false;
 
         foreach (var entry in entries)
         {
-            // Add "PINNED" header before first pinned entry
-            if (entry.IsPinned && !pinnedHeaderAdded)
+            var group = GetTimeGroup(entry.CreatedAt);
+            if (group != currentGroup)
             {
-                items.Add(new SectionHeader { Label = "PINNED" });
-                pinnedHeaderAdded = true;
-                currentGroup = null; // reset time groups after pinned section
-            }
-
-            // Skip time headers for pinned items
-            if (!entry.IsPinned)
-            {
-                var group = GetTimeGroup(entry.CreatedAt);
-                if (group != currentGroup)
-                {
-                    currentGroup = group;
-                    items.Add(new SectionHeader { Label = group });
-                }
+                currentGroup = group;
+                items.Add(new SectionHeader { Label = group });
             }
             items.Add(entry);
         }
