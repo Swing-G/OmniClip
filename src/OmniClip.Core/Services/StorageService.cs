@@ -79,4 +79,27 @@ public class StorageService : IStorageService
     public string GetDatabasePath() => Path.Combine(_config.StoragePath, "clipboard.db");
 
     public string GetFilesDirectory() => Path.Combine(_config.StoragePath, "files");
+
+    public async Task EnforceMaxStorageAsync(long maxBytes)
+    {
+        if (maxBytes <= 0) return; // 0 = never clean
+
+        var totalSize = GetTotalSize();
+        if (totalSize <= maxBytes) return;
+
+        var filesDir = GetFilesDirectory();
+        if (!Directory.Exists(filesDir)) return;
+
+        // Get all files sorted by last write time (oldest first)
+        var files = Directory.GetFiles(filesDir, "*", SearchOption.AllDirectories)
+            .Select(f => new FileInfo(f))
+            .OrderBy(f => f.LastWriteTime)
+            .ToList();
+
+        foreach (var file in files)
+        {
+            if (GetTotalSize() <= maxBytes) break;
+            try { await Task.Run(() => file.Delete()); } catch { }
+        }
+    }
 }

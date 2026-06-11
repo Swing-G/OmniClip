@@ -8,10 +8,12 @@
         Width="1280" Height="760"
         MinWidth="1020" MinHeight="620"
         Background="#FCF9F8"
-        FontFamily="Segoe UI"
+        FontFamily="Inter, Segoe UI Variable Display, Segoe UI, PingFang SC, HarmonyOS Sans SC, Microsoft YaHei"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
-        SnapsToDevicePixels="True">
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType">
 
     <WindowChrome.WindowChrome>
         <shell:WindowChrome
@@ -52,6 +54,31 @@
 
         <DropShadowEffect x:Key="PreviewShadow" BlurRadius="60" ShadowDepth="16" Opacity="0.12" Color="#000000"/>
         <DropShadowEffect x:Key="CardHoverShadow" BlurRadius="16" ShadowDepth="4" Opacity="0.10" Color="#000000"/>
+
+        <Style x:Key="CardActionBtn" TargetType="Button">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Foreground" Value="#A0A7B4"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="Transparent" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EAE7E7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <Style x:Key="IconText" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
@@ -277,26 +304,18 @@
                                Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
                                Margin="14,4,0,0"
                                VerticalAlignment="Top"
-                               FontSize="12"
-                               Foreground="#202734"/>
+                               FontSize="11"
+                               Foreground="#717783"/>
 
-                    <Button Content="&#xE8C8;"
+                    <Button Content="&#xE8C8;" Style="{StaticResource CardActionBtn}"
                             Grid.Column="2" Grid.ColumnSpan="2"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                            FontFamily="Segoe MDL2 Assets" FontSize="11"
-                            Width="22" Height="22"
-                            Foreground="#A0A7B4" Background="Transparent"
-                            BorderThickness="0" Cursor="Hand"
                             ToolTip="Copy"
                             Click="CardCopy_Click" Tag="{Binding}"/>
-                    <Button Content="&#xE718;"
+                    <Button Content="&#xE718;" Style="{StaticResource CardActionBtn}"
                             Grid.Column="2" Grid.ColumnSpan="2"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
                             Margin="0,0,24,0"
-                            FontFamily="Segoe MDL2 Assets" FontSize="11"
-                            Width="22" Height="22"
-                            Foreground="#A0A7B4" Background="Transparent"
-                            BorderThickness="0" Cursor="Hand"
                             ToolTip="Pin"
                             Click="CardPin_Click" Tag="{Binding}"/>
                 </Grid>
@@ -352,25 +371,17 @@
                                Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
                                Margin="14,4,0,0"
                                VerticalAlignment="Top"
-                               FontSize="12"
-                               Foreground="#202734"/>
-                    <Button Content="&#xE8C8;"
+                               FontSize="11"
+                               Foreground="#717783"/>
+                    <Button Content="&#xE8C8;" Style="{StaticResource CardActionBtn}"
                             Grid.Column="2" Grid.ColumnSpan="2"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                            FontFamily="Segoe MDL2 Assets" FontSize="11"
-                            Width="22" Height="22"
-                            Foreground="#A0A7B4" Background="Transparent"
-                            BorderThickness="0" Cursor="Hand"
                             ToolTip="Copy"
                             Click="CardCopy_Click" Tag="{Binding}"/>
-                    <Button Content="&#xE718;"
+                    <Button Content="&#xE718;" Style="{StaticResource CardActionBtn}"
                             Grid.Column="2" Grid.ColumnSpan="2"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
                             Margin="0,0,24,0"
-                            FontFamily="Segoe MDL2 Assets" FontSize="11"
-                            Width="22" Height="22"
-                            Foreground="#A0A7B4" Background="Transparent"
-                            BorderThickness="0" Cursor="Hand"
                             ToolTip="Pin"
                             Click="CardPin_Click" Tag="{Binding}"/>
                 </Grid>
@@ -413,25 +424,17 @@
                                Text="{Binding CreatedAt, Converter={StaticResource RelTime}}"
                                Margin="14,4,0,0"
                                VerticalAlignment="Top"
-                               FontSize="12"
-                               Foreground="#202734"/>
-                    <Button Content="&#xE8C8;"
+                               FontSize="11"
+                               Foreground="#717783"/>
+                    <Button Content="&#xE8C8;" Style="{StaticResource CardActionBtn}"
                             Grid.Column="2" Grid.ColumnSpan="2"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                            FontFamily="Segoe MDL2 Assets" FontSize="11"
-                            Width="22" Height="22"
-                            Foreground="#A0A7B4" Background="Transparent"
-                            BorderThickness="0" Cursor="Hand"
                             ToolTip="Copy"
                             Click="CardCopy_Click" Tag="{Binding}"/>
-                    <Button Content="&#xE718;"
+                    <Button Content="&#xE718;" Style="{StaticResource CardActionBtn}"
                             Grid.Column="2" Grid.ColumnSpan="2"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
                             Margin="0,0,24,0"
-                            FontFamily="Segoe MDL2 Assets" FontSize="11"
-                            Width="22" Height="22"
-                            Foreground="#A0A7B4" Background="Transparent"
-                            BorderThickness="0" Cursor="Hand"
                             ToolTip="Pin"
                             Click="CardPin_Click" Tag="{Binding}"/>
                 </Grid>
@@ -495,7 +498,7 @@
                                      Margin="0,0,14,0"
                                      VerticalAlignment="Center"/>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="OmniClip" FontSize="20" FontWeight="SemiBold" Foreground="#005FAA"/>
+                        <TextBlock Text="OmniClip" FontSize="22" FontWeight="SemiBold" Foreground="#005FAA"/>
                         <TextBlock Text="Professional Clipboard" Margin="0,4,0,0" FontSize="12" Foreground="#404752"/>
                     </StackPanel>
                 </StackPanel>
@@ -507,7 +510,7 @@
                     <ListBoxItem Style="{StaticResource NavItem}" IsSelected="True" Tag="all">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource IconText}" Text="&#xE81C;" Width="24"/>
-                            <TextBlock Text="All Items" FontSize="15" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="All Items" FontSize="14" Margin="16,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource NavItem}" Tag="code">
@@ -577,7 +580,7 @@
                                 <ScaleTransform ScaleX="1" ScaleY="1"/>
                             </StackPanel.RenderTransform>
                             <TextBlock Style="{StaticResource IconText}" Text="&#xE713;" Width="24" FontSize="21"/>
-                            <TextBlock Text="Settings" FontSize="15" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Settings" FontSize="14" Margin="16,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </Border>
@@ -661,9 +664,9 @@
                             <TextBlock x:Name="PreviewIcon" Text="&#xE943;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel>
-                            <TextBlock x:Name="PreviewTitle" Text="Code Snippet" FontSize="22" FontWeight="SemiBold" Foreground="#000000" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="PreviewTitle" Text="Code Snippet" FontSize="24" FontWeight="SemiBold" Foreground="#000000" TextTrimming="CharacterEllipsis"/>
                             <TextBlock x:Name="PreviewMeta" Text="Copied from VS Code · Today, 10:42 AM · 1.2 KB"
-                                       FontSize="12" Foreground="#404752"
+                                       FontSize="13" Foreground="#404752"
                                        TextWrapping="Wrap" MaxHeight="36"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
@@ -694,8 +697,10 @@
                         BorderThickness="1"
                         Effect="{StaticResource PreviewShadow}"
                         RenderTransformOrigin="0.5,0.5"
+                        Cursor="Hand"
                         MouseEnter="PreviewCard_MouseEnter"
-                        MouseLeave="PreviewCard_MouseLeave">
+                        MouseLeave="PreviewCard_MouseLeave"
+                        MouseDown="PreviewCard_MouseDown">
                     <Border.RenderTransform>
                         <ScaleTransform ScaleX="1" ScaleY="1"/>
                     </Border.RenderTransform>
@@ -708,7 +713,25 @@
                         <Border Grid.Row="0" Background="#F6F3F2" BorderBrush="#E5E2E1" BorderThickness="0,0,0,1" CornerRadius="10,10,0,0" Padding="16,0">
                             <Grid>
                                 <TextBlock x:Name="PreviewLangLabel" Text="javascript" FontSize="13" Foreground="#202734" VerticalAlignment="Center"/>
-                                <TextBlock Text="&#xE8A7;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#404752" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <Button Content="&#xE8A7;" FontFamily="Segoe MDL2 Assets"
+                                        FontSize="16" Foreground="#717783"
+                                        Width="32" Height="32" Background="Transparent"
+                                        BorderThickness="0" Cursor="Hand"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                                        Click="OpenInApp_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="border" Background="Transparent" CornerRadius="6">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="border" Property="Background" Value="#EAE7E7"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
                             </Grid>
                         </Border>
 
@@ -716,8 +739,7 @@
                             <Grid>
                                 <TextBox x:Name="PreviewText"
                                          Text="Select a clipboard item to preview its content here."
-                                         FontFamily="Consolas"
-                                         FontSize="15"
+                                         FontSize="14"
                                          Foreground="#202734"
                                          TextWrapping="Wrap"
                                          IsReadOnly="True"

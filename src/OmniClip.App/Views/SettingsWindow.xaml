@@ -7,10 +7,12 @@
         MinWidth="480" MinHeight="560"
         ResizeMode="NoResize"
         Background="#FCF9F8"
-        FontFamily="Segoe UI"
+        FontFamily="Inter, Segoe UI Variable Display, Segoe UI, PingFang SC, HarmonyOS Sans SC, Microsoft YaHei"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
         ShowInTaskbar="False">
 
     <WindowChrome.WindowChrome>
@@ -113,6 +115,34 @@
         <Style x:Key="NumInput" TargetType="TextBox" BasedOn="{StaticResource FieldInput}">
             <Setter Property="Width" Value="100"/>
             <Setter Property="TextAlignment" Value="Right"/>
+        </Style>
+
+        <Style x:Key="PresetBtn" TargetType="Button">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Margin" Value="0,0,6,4"/>
+            <Setter Property="Background" Value="#F0EDED"/>
+            <Setter Property="Foreground" Value="#404752"/>
+            <Setter Property="BorderBrush" Value="#D9DEE7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#EAE7E7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
@@ -262,6 +292,8 @@
                 <StackPanel Margin="0,0,0,6">
                     <CheckBox x:Name="MonitorChk" Content="Enable clipboard monitoring"
                               Style="{StaticResource CheckBoxStyle}" Margin="0,0,0,10"/>
+                    <CheckBox x:Name="StartupChk" Content="Start with Windows"
+                              Style="{StaticResource CheckBoxStyle}" Margin="0,0,0,10"/>
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="130"/>
@@ -275,10 +307,23 @@
                             <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Style="{StaticResource FieldLabel}" Text="Excluded apps" Grid.Column="0"/>
-                        <TextBox x:Name="ExcludedAppsInput" Style="{StaticResource FieldInput}" Grid.Column="1"
-                                 TextWrapping="Wrap" AcceptsReturn="True" Height="56"
-                                 ToolTip="One app name per line. Content from these apps will not be stored."/>
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="Excluded apps" Grid.Column="0"
+                                   VerticalAlignment="Top" Margin="0,6,0,0"/>
+                        <StackPanel Grid.Column="1">
+                            <WrapPanel Margin="0,0,0,8">
+                                <Button Content="chrome" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                                <Button Content="msedge" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                                <Button Content="Code" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                                <Button Content="WeChat" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                                <Button Content="1Password" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                                <Button Content="WindowsTerminal" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                                <Button Content="firefox" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                                <Button Content="devenv" Style="{StaticResource PresetBtn}" Click="Preset_Click"/>
+                            </WrapPanel>
+                            <TextBox x:Name="ExcludedAppsInput" Style="{StaticResource FieldInput}"
+                                     TextWrapping="Wrap" AcceptsReturn="True" Height="56"
+                                     ToolTip="One app name per line. Content from these apps will not be stored."/>
+                        </StackPanel>
                     </Grid>
                 </StackPanel>
 

@@ -64,14 +64,15 @@ public partial class MainWindow : Window
         if (SidebarNav.SelectedItem is not ListBoxItem item) return;
 
         var tag = item.Tag?.ToString() ?? "all";
-        if (Enum.TryParse<ContentType>(tag, true, out var type))
-            EntryListMain.ItemsSource = BuildGroupedList(
-                await _dbService.GetEntriesByTypeAsync(type, 200));
-        else
-            await LoadEntriesAsync();
+        _activeTypeFilter = tag == "all" ? null : tag;
+        _unpinnedOnly = false;
+        await LoadEntriesAsync();
     }
 
     // === Feed ===
+
+    private string? _activeTypeFilter = null;
+    private bool _unpinnedOnly = false;
 
     private async Task LoadEntriesAsync(string? keyword = null)
     {
@@ -79,9 +80,30 @@ public partial class MainWindow : Window
 
         IReadOnlyList<ClipboardEntry> entries;
         if (!string.IsNullOrWhiteSpace(keyword))
+        {
             entries = await _dbService.SearchEntriesAsync(keyword, 200);
+        }
+        else if (_activeTypeFilter != null)
+        {
+            var type = _activeTypeFilter switch
+            {
+                "text" => ContentType.Text,
+                "code" => ContentType.Code,
+                "url" => ContentType.Url,
+                "image" => ContentType.Image,
+                "file" => ContentType.File,
+                _ => ContentType.Text
+            };
+            entries = await _dbService.GetEntriesByTypeAsync(type, 200);
+        }
         else
+        {
             entries = await _dbService.GetRecentEntriesAsync(200);
+        }
+
+        // Filter unpinned-only if chip is active
+        if (_unpinnedOnly)
+            entries = entries.Where(e => !e.IsPinned).ToList().AsReadOnly();
 
         EntryListMain.ItemsSource = BuildGroupedList(entries);
     }
@@ -128,6 +150,20 @@ public partial class MainWindow : Window
 
     private async void FilterChip_Click(object sender, RoutedEventArgs e)
     {
+        if (sender is System.Windows.Controls.Button btn)
+        {
+            _unpinnedOnly = btn == UnpinnedChip;
+            // Toggle chip backgrounds
+            var activeBg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF0, 0xED, 0xED));
+            var inactiveBg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFC, 0xF9, 0xF8));
+            var activeFg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1B, 0x1B, 0x1B));
+            var inactiveFg = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x40, 0x47, 0x52));
+
+            AllChip.Background = _unpinnedOnly ? inactiveBg : activeBg;
+            AllChip.Foreground = _unpinnedOnly ? inactiveFg : activeFg;
+            UnpinnedChip.Background = _unpinnedOnly ? activeBg : inactiveBg;
+            UnpinnedChip.Foreground = _unpinnedOnly ? activeFg : inactiveFg;
+        }
         await LoadEntriesAsync();
     }
 
@@ -208,7 +244,7 @@ public partial class MainWindow : Window
                     + $"Size: {sizeStr}\n"
                     + $"Type: {ext.TrimStart('.').ToUpper()} File\n\n"
                     + $"Path: {entry.FilePath}\n\n"
-                    + $"Click to open in default app";
+                    + $"Click card or ↗ to open";
             }
 
             // Enable Open button
@@ -305,6 +341,34 @@ public partial class MainWindow : Window
     private void PreviewCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
     {
         PreviewCard.RenderTransform = new ScaleTransform(1, 1);
+    }
+
+    private void PreviewCard_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+            OpenSelectedFile();
+    }
+
+    private void OpenInApp_Click(object sender, RoutedEventArgs e)
+    {
+        OpenSelectedFile();
+    }
+
+    private void OpenSelectedFile()
+    {
+        if (EntryListMain.SelectedItem is ClipboardEntry entry &&
+            !string.IsNullOrEmpty(entry.FilePath) && File.Exists(entry.FilePath))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = entry.FilePath,
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
     }
 
     // === Card Buttons ===

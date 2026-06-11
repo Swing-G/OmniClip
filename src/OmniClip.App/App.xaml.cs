@@ -1,6 +1,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -26,6 +27,8 @@ public partial class App : Application
     private MainWindow? _mainWindow;
     private AppConfig _config = new();
 
+    private string ConfigFilePath => System.IO.Path.Combine(_config.StoragePath, "config.json");
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -35,8 +38,14 @@ public partial class App : Application
         _storageService = new StorageService(_config);
         _storageService.EnsureDataDirectory();
 
+        // Load persisted config if exists
+        LoadConfig();
+
         _databaseService = new DatabaseService();
         await _databaseService.InitializeAsync(_storageService.GetDatabasePath());
+
+        // Run cleanup if configured
+        await RunCleanupIfNeeded();
 
         // Clipboard monitor
         _clipboardMonitor = new ClipboardMonitor(Dispatcher);
@@ -240,6 +249,8 @@ public partial class App : Application
 
         if (settings.Saved)
         {
+            SaveConfig();
+
             // Re-apply hotkey if changed
             if (_config.Hotkey != oldHotkey && _hotkeyService != null)
             {
@@ -320,11 +331,78 @@ public partial class App : Application
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    private async Task RunCleanupIfNeeded()
+    {
+        if (_databaseService == null || _storageService == null) return;
+
+        // DB cleanup by retention days (0 = never)
+        if (_config.RetentionDays > 0)
+        {
+            var cutoff = DateTime.UtcNow.AddDays(-_config.RetentionDays);
+            await _databaseService.DeleteEntriesBeforeAsync(cutoff);
+        }
+
+        // Storage cleanup by max size (0 = never)
+        await _storageService.EnforceMaxStorageAsync(_config.MaxStorageBytes);
+    }
+
     private static bool IsSelfTriggered(string sourceApp)
     {
         if (string.IsNullOrEmpty(sourceApp)) return false;
 
         var selfName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
         return string.Equals(sourceApp, selfName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void LoadConfig()
+    {
+        try
+        {
+            var path = System.IO.Path.Combine(_config.StoragePath, "config.json");
+            if (System.IO.File.Exists(path))
+            {
+                var json = System.IO.File.ReadAllText(path);
+                var loaded = System.Text.Json.JsonSerializer.Deserialize<AppConfig>(json);
+                if (loaded != null)
+                {
+                    _config.StoragePath = loaded.StoragePath;
+                    _config.RetentionDays = loaded.RetentionDays;
+                    _config.MaxStorageBytes = loaded.MaxStorageBytes;
+                    _config.CaptureText = loaded.CaptureText;
+                    _config.CaptureImage = loaded.CaptureImage;
+                    _config.CaptureFile = loaded.CaptureFile;
+                    _config.MaxTextLength = loaded.MaxTextLength;
+                    _config.MinContentLength = loaded.MinContentLength;
+                    _config.MaxFileSizeBytes = loaded.MaxFileSizeBytes;
+                    _config.ImageMaxWidth = loaded.ImageMaxWidth;
+                    _config.ImageMaxHeight = loaded.ImageMaxHeight;
+                    _config.Hotkey = loaded.Hotkey;
+                    _config.StartWithWindows = loaded.StartWithWindows;
+                    _config.MonitorEnabled = loaded.MonitorEnabled;
+                    _config.ExcludedApps = loaded.ExcludedApps ?? new();
+                }
+            }
+        }
+        catch
+        {
+            // Corrupt config? Use defaults.
+        }
+    }
+
+    private void SaveConfig()
+    {
+        try
+        {
+            var path = System.IO.Path.Combine(_config.StoragePath, "config.json");
+            var json = System.Text.Json.JsonSerializer.Serialize(_config, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            System.IO.File.WriteAllText(path, json);
+        }
+        catch
+        {
+            // Failed to save — next restart will use defaults or last successful save
+        }
     }
 }

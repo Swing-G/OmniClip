@@ -26,6 +26,27 @@ public partial class SettingsWindow : Window
             DragMove();
     }
 
+    private void Preset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button btn)
+        {
+            var appName = btn.Content?.ToString();
+            if (string.IsNullOrEmpty(appName)) return;
+
+            var current = ExcludedAppsInput.Text
+                .Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => s.Length > 0)
+                .ToList();
+
+            if (!current.Contains(appName, StringComparer.OrdinalIgnoreCase))
+            {
+                current.Add(appName);
+                ExcludedAppsInput.Text = string.Join(Environment.NewLine, current);
+            }
+        }
+    }
+
     private void CloseBtn_Click(object sender, RoutedEventArgs e)
     {
         Cancel_Click(sender, e);
@@ -47,6 +68,7 @@ public partial class SettingsWindow : Window
         CaptureImageChk.IsChecked = _config.CaptureImage;
         CaptureFileChk.IsChecked = _config.CaptureFile;
         MonitorChk.IsChecked = _config.MonitorEnabled;
+        StartupChk.IsChecked = _config.StartWithWindows;
 
         ExcludedAppsInput.Text = string.Join(Environment.NewLine, _config.ExcludedApps);
     }
@@ -80,6 +102,7 @@ public partial class SettingsWindow : Window
         CaptureImageChk.IsChecked = defaults.CaptureImage;
         CaptureFileChk.IsChecked = defaults.CaptureFile;
         MonitorChk.IsChecked = defaults.MonitorEnabled;
+        StartupChk.IsChecked = defaults.StartWithWindows;
         ExcludedAppsInput.Text = string.Join(Environment.NewLine, defaults.ExcludedApps);
     }
 
@@ -120,6 +143,7 @@ public partial class SettingsWindow : Window
         _config.CaptureImage = CaptureImageChk.IsChecked ?? true;
         _config.CaptureFile = CaptureFileChk.IsChecked ?? true;
         _config.MonitorEnabled = MonitorChk.IsChecked ?? true;
+        _config.StartWithWindows = StartupChk.IsChecked ?? true;
 
         _config.ExcludedApps = ExcludedAppsInput.Text
             .Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.RemoveEmptyEntries)
@@ -132,7 +156,10 @@ public partial class SettingsWindow : Window
     }
 
     private static int ParseInt(string text, int fallback)
-        => int.TryParse(text?.Trim(), out var v) && v > 0 ? v : fallback;
+        => int.TryParse(text?.Trim(), out var v) && v >= 0 ? v : fallback;
+
+    private static long ParseLong(string text, long fallback)
+        => long.TryParse(text?.Trim(), out var v) && v >= 0 ? v : fallback;
 
     private static AppConfig CloneConfig(AppConfig src) => new()
     {
@@ -149,6 +176,7 @@ public partial class SettingsWindow : Window
         CaptureImage = src.CaptureImage,
         CaptureFile = src.CaptureFile,
         MonitorEnabled = src.MonitorEnabled,
+        StartWithWindows = src.StartWithWindows,
         ExcludedApps = new List<string>(src.ExcludedApps)
     };
 }

@@ -6,6 +6,7 @@ public interface IStorageService
     Task<string> SaveFileAsync(string sourcePath, string extension);
     Task<bool> DeleteFileAsync(string relativeOrAbsolutePath);
     long GetTotalSize();
+    Task EnforceMaxStorageAsync(long maxBytes);
     Task CleanupOldFilesAsync();
     string GetDatabasePath();
     string GetFilesDirectory();
