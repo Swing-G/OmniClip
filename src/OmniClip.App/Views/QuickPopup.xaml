@@ -56,9 +56,10 @@
         </Border.Effect>
 
         <DockPanel>
-            <!-- Search bar -->
-            <Border DockPanel.Dock="Top" Padding="12,10" Background="White"
-                    BorderBrush="#E5E2E1" BorderThickness="0,0,0,1">
+            <!-- Search bar — draggable -->
+            <Border x:Name="DragBar" DockPanel.Dock="Top" Padding="12,10" Background="White"
+                    BorderBrush="#E5E2E1" BorderThickness="0,0,0,1"
+                    MouseDown="DragBar_MouseDown">
                 <Border Background="#F6F3F2" CornerRadius="20"
                         BorderBrush="#C0C7D4" BorderThickness="0.5"
                         Padding="10,7">

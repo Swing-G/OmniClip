@@ -32,7 +32,13 @@ public partial class QuickPopup : Window
 
     public async Task ShowAndLoadAsync()
     {
-        PositionNearCursor();
+        // Center on screen on first show
+        if (Left == 0 && Top == 0)
+        {
+            Left = (SystemParameters.PrimaryScreenWidth - Width) / 2;
+            Top = (SystemParameters.PrimaryScreenHeight - Height) / 2;
+        }
+
         Show();
         Activate();
         SearchBox.Focus();
@@ -40,20 +46,10 @@ public partial class QuickPopup : Window
         await LoadEntriesAsync();
     }
 
-    private void PositionNearCursor()
+    private void DragBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        GetCursorPos(out var point);
-
-        var x = (double)point.X;
-        var y = (double)point.Y;
-
-        if (x + Width > SystemParameters.PrimaryScreenWidth)
-            x = SystemParameters.PrimaryScreenWidth - Width;
-        if (y + Height > SystemParameters.PrimaryScreenHeight)
-            y = SystemParameters.PrimaryScreenHeight - Height;
-
-        Left = x;
-        Top = y;
+        if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+            DragMove();
     }
 
     private async Task LoadEntriesAsync(string? keyword = null)

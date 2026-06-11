@@ -70,6 +70,9 @@ public partial class App : Application
         _quickPopup = new QuickPopup(_databaseService);
         _quickPopup.EntryPasted += OnEntryPasted;
 
+        // Floating button (can be dismissed)
+        SetupFloatingButton();
+
         // System tray
         SetupTrayIcon();
 
@@ -78,6 +81,20 @@ public partial class App : Application
 
         // Update tray with initial info
         UpdateTrayInfo();
+    }
+
+    private FloatingButton? _floatingBtn;
+
+    private void SetupFloatingButton()
+    {
+        _floatingBtn = new FloatingButton();
+        _floatingBtn.OpenMainWindow += () => Dispatcher.Invoke(ShowMainWindow);
+        _floatingBtn.Dismiss += () =>
+        {
+            _floatingBtn?.Close();
+            _floatingBtn = null;
+        };
+        _floatingBtn.Show();
     }
 
     private void SetupTrayIcon()
