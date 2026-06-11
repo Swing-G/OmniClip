@@ -78,6 +78,16 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                    <Setter Property="Foreground" Value="#005FAA"/>
+                    <Setter Property="ToolTip" Value="Unpin"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsPinned}" Value="False">
+                    <Setter Property="Foreground" Value="#A0A7B4"/>
+                    <Setter Property="ToolTip" Value="Pin"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="IconText" TargetType="TextBlock">

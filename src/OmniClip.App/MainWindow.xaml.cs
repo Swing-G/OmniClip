@@ -101,9 +101,9 @@ public partial class MainWindow : Window
             entries = await _dbService.GetRecentEntriesAsync(200);
         }
 
-        // Filter pinned-only if chip is active (skip when searching)
-        if (_pinnedOnly && string.IsNullOrWhiteSpace(keyword))
-            entries = entries.Where(e => e.IsPinned).ToList().AsReadOnly();
+        // Pinned chip: only pinned.  All Types: only unpinned.  Search: show all.
+        if (string.IsNullOrWhiteSpace(keyword))
+            entries = entries.Where(e => e.IsPinned == _pinnedOnly).ToList().AsReadOnly();
 
         EntryListMain.ItemsSource = BuildGroupedList(entries);
     }
@@ -402,17 +402,6 @@ public partial class MainWindow : Window
         {
             entry.IsPinned = !entry.IsPinned;
             await _dbService.UpdateEntryAsync(entry);
-
-            // Update the clicked button's icon & tooltip immediately
-            btn.Content = entry.IsPinned ? "" : "";     // filled vs outline — same glyph for now
-            btn.Foreground = entry.IsPinned
-                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x00, 0x5F, 0xAA))
-                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xA0, 0xA7, 0xB4));
-            btn.ToolTip = entry.IsPinned ? "Unpin" : "Pin";
-            btn.Foreground = entry.IsPinned
-                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x00, 0x5F, 0xAA))
-                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xA0, 0xA7, 0xB4));
-            btn.ToolTip = entry.IsPinned ? "Unpin" : "Pin";
 
             await LoadEntriesAsync();
         }
